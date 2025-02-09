@@ -4,8 +4,10 @@ import java.util.Optional;
 
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.labs.core.StreamExtras;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
@@ -26,7 +28,17 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
         {
             if (isSuppressWarningsRationale(annotation))
             {
-                validateMultipleSuppressionsExist(annotation);
+                if (specifiesName(annotation))
+                {
+                    validateMultipleSuppressionsExist(annotation);
+                }
+
+                if (shouldUseSingleMemberForm(annotation))
+                {
+                    addViolation("%s needlessly uses the full `value=\"…\"` syntax for a rationale in %s",
+                        getEnclosingTypeName(annotation),
+                        getFileLocation(annotation));
+                }
             }
         }
 
@@ -36,6 +48,15 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                 .equals("SuppressWarningsRationale") ||
                 annotation.getNameAsString()
                     .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
+        }
+
+        private boolean specifiesName(AnnotationExpr annotation)
+        {
+            return annotation instanceof NormalAnnotationExpr normalAnnotationExpr &&
+                normalAnnotationExpr.getPairs()
+                    .stream()
+                    .map(NodeWithSimpleName::getNameAsString)
+                    .anyMatch(name -> name.equals("name"));
         }
 
         private void validateMultipleSuppressionsExist(NormalAnnotationExpr annotation)
@@ -60,6 +81,14 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                     getFileLocation(annotation));
             }
         }
+
+        private boolean shouldUseSingleMemberForm(NormalAnnotationExpr annotation)
+        {
+            return annotation.getPairs()
+                .stream()
+                .map(MemberValuePair::getNameAsString)
+                .allMatch(name -> name.equals("value"));
+        }
     }
 
     private final Visitor visitor = new Visitor();
@@ -73,7 +102,7 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
     @Override
     public String getDescription()
     {
-        return "@SuppressWarningsRationale may only specify a 'name' if there is more than one suppression";
+        return "@SuppressWarningsRationale should use short syntax if there is only one suppression";
     }
 
     @Override

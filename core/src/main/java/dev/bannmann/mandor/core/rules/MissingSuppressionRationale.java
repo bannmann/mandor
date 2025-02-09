@@ -113,7 +113,7 @@ public class MissingSuppressionRationale extends SourceRule
 
             if (annotationExpression instanceof NormalAnnotationExpr normalAnnotationExpression)
             {
-                return Optional.of(normalAnnotationExpression.getPairs()
+                return normalAnnotationExpression.getPairs()
                     .stream()
                     .filter(memberValuePair -> memberValuePair.getName()
                         .asString()
@@ -121,8 +121,7 @@ public class MissingSuppressionRationale extends SourceRule
                     .reduce(StreamExtras.atMostOne())
                     .stream()
                     .findFirst()
-                    .map(MemberValuePair::getValue)
-                    .orElseThrow(CodeInconsistencyException::new));
+                    .map(MemberValuePair::getValue);
             }
 
             throw new CodeInconsistencyException("Unexpected type of annotation expression (%s): %s".formatted(
