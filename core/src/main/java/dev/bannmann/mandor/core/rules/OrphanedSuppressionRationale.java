@@ -8,6 +8,7 @@ import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.labs.core.StreamExtras;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class OrphanedSuppressionRationale extends SourceRule
@@ -15,10 +16,10 @@ public class OrphanedSuppressionRationale extends SourceRule
     private static class Visitor extends AbstractSourceVisitor
     {
         @Override
-        public void visit(SingleMemberAnnotationExpr annotation, Void unused)
+        public void visit(SingleMemberAnnotationExpr annotation, Context context)
         {
             processAnnotation(annotation);
-            super.visit(annotation, unused);
+            super.visit(annotation, context);
         }
 
         private void processAnnotation(AnnotationExpr annotation)
@@ -53,16 +54,16 @@ public class OrphanedSuppressionRationale extends SourceRule
             if (suppressionAnnotationOptional.isEmpty())
             {
                 addViolation("%s gives a rationale without suppressing a warning in %s",
-                    getEnclosingTypeName(annotation),
-                    getFileLocation(annotation));
+                    getContext().getEnclosingTypeName(annotation),
+                    getContext().getFileLocation(annotation));
             }
         }
 
         @Override
-        public void visit(NormalAnnotationExpr annotation, Void arg)
+        public void visit(NormalAnnotationExpr annotation, Context context)
         {
             processAnnotation(annotation);
-            super.visit(annotation, arg);
+            super.visit(annotation, context);
         }
     }
 

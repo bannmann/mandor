@@ -16,6 +16,7 @@ import com.github.mizool.core.exception.CodeInconsistencyException;
 import com.google.common.collect.Sets;
 import dev.bannmann.labs.core.StreamExtras;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class MissingSuppressionRationale extends SourceRule
@@ -23,7 +24,7 @@ public class MissingSuppressionRationale extends SourceRule
     private static class Visitor extends AbstractSourceVisitor
     {
         @Override
-        public void visit(SingleMemberAnnotationExpr annotation, Void unused)
+        public void visit(SingleMemberAnnotationExpr annotation, Context context)
         {
             /*
              * Technically, a custom @SuppressWarnings might exist in another package, but we ignore that for now.
@@ -51,7 +52,7 @@ public class MissingSuppressionRationale extends SourceRule
                 }
             }
 
-            super.visit(annotation, unused);
+            super.visit(annotation, context);
         }
 
         private void verifyRationalePresent(SingleMemberAnnotationExpr annotation, StringLiteralExpr stringExpression)
@@ -97,11 +98,11 @@ public class MissingSuppressionRationale extends SourceRule
                 : "warning";
 
             addViolation("%s suppresses %s %s without giving rationale in %s",
-                getEnclosingTypeName(suppressionAnnotation),
+                getContext().getEnclosingTypeName(suppressionAnnotation),
                 what,
                 suppressedWithoutRationale.stream()
                     .collect(Collectors.joining("', '", "'", "'")),
-                getFileLocation(suppressionAnnotation));
+                getContext().getFileLocation(suppressionAnnotation));
         }
 
         private Optional<Expression> getName(AnnotationExpr annotationExpression)
@@ -159,7 +160,7 @@ public class MissingSuppressionRationale extends SourceRule
         private String createExceptionMessage(Expression expression)
         {
             return "Unsupported expression type for @SuppressWarnings: %s in %s".formatted(expression,
-                getFileLocation(expression));
+                getContext().getFileLocation(expression));
         }
     }
 

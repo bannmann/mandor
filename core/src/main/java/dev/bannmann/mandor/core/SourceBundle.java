@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -14,11 +13,17 @@ import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.mizool.core.exception.CodeInconsistencyException;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 
 public class SourceBundle
 {
-    private final Map<Path, CompilationUnit> compilationUnits = new HashMap<>();
+    /**
+     * All compilation units (classes, package-info) keyed to the path relative to the root directory (e.g. {@code com/example/package-info.java} or {@code com/example/Foo.java}).
+     */
+    private final ListMultimap<Path, CompilationUnit> compilationUnits = MultimapBuilder.linkedHashKeys()
+        .arrayListValues()
+        .build();
 
     public SourceBundle()
     {
@@ -34,10 +39,16 @@ public class SourceBundle
 
     public SourceBundle importSources(Path start)
     {
-        try (Stream<Path> pathStream = Files.find(start, Integer.MAX_VALUE, this::isJavaSourceFile))
+        try
         {
-            pathStream.map(this::parse)
-                .forEach(this::add);
+            try (Stream<Path> pathStream = Files.find(start, Integer.MAX_VALUE, this::isJavaSourceFile))
+            {
+                pathStream.forEach(path -> {
+                    var compilationUnit = parse(path);
+                    Path pathRelativeToStart = start.relativize(path);
+                    compilationUnits.put(pathRelativeToStart, compilationUnit);
+                });
+            }
         }
         catch (IOException e)
         {
@@ -59,7 +70,7 @@ public class SourceBundle
     {
         try
         {
-            return parseFile(path);
+            return StaticJavaParser.parse(path);
         }
         catch (IOException e)
         {
@@ -67,22 +78,16 @@ public class SourceBundle
         }
     }
 
-    private CompilationUnit parseFile(Path path) throws IOException
-    {
-        return StaticJavaParser.parse(path);
-    }
-
-    private void add(CompilationUnit compilationUnit)
-    {
-        compilationUnits.put(compilationUnit.getStorage()
-            .orElseThrow(CodeInconsistencyException::new)
-            .getPath(), compilationUnit);
-    }
-
     public SourceBundle verify(SourceRule rule)
     {
-        compilationUnits.values()
-            .forEach(rule::scan);
+        for (Map.Entry<Path, CompilationUnit> entry : compilationUnits.entries())
+        {
+            var compilationUnit = entry.getValue();
+            var path = entry.getKey();
+            Context context = new Context(compilationUnit, path, this::lookupCompilationUnit);
+
+            rule.scan(compilationUnit, context);
+        }
 
         var violations = rule.getViolations();
         if (!violations.isEmpty())
@@ -93,5 +98,11 @@ public class SourceBundle
         }
 
         return this;
+    }
+
+    private Stream<CompilationUnit> lookupCompilationUnit(Path path)
+    {
+        return compilationUnits.get(path)
+            .stream();
     }
 }

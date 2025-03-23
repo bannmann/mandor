@@ -11,6 +11,7 @@ import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.labs.core.StreamExtras;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class OvercomplicatedSuppressionRationale extends SourceRule
@@ -18,9 +19,9 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
     private static class Visitor extends AbstractSourceVisitor
     {
         @Override
-        public void visit(NormalAnnotationExpr annotation, Void unused)
+        public void visit(NormalAnnotationExpr annotation, Context context)
         {
-            super.visit(annotation, unused);
+            super.visit(annotation, context);
             processAnnotation(annotation);
         }
 
@@ -36,8 +37,8 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                 if (shouldUseSingleMemberForm(annotation))
                 {
                     addViolation("%s needlessly uses the full `value=\"…\"` syntax for a rationale in %s",
-                        getEnclosingTypeName(annotation),
-                        getFileLocation(annotation));
+                        getContext().getEnclosingTypeName(annotation),
+                        getContext().getFileLocation(annotation));
                 }
             }
         }
@@ -77,8 +78,8 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                 .isEmpty())
             {
                 addViolation("%s needlessly specifies a suppression name for a rationale in %s",
-                    getEnclosingTypeName(annotation),
-                    getFileLocation(annotation));
+                    getContext().getEnclosingTypeName(annotation),
+                    getContext().getFileLocation(annotation));
             }
         }
 

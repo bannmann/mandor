@@ -1,23 +1,15 @@
 package dev.bannmann.mandor.core.rules;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Set;
 
-import org.jspecify.annotations.NullMarked;
-
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
-import com.github.mizool.core.exception.ConfigurationException;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
 
-@SuppressWarnings("VoidUsed")
 public class UndesiredNullabilityAnnotation extends SourceRule
 {
     private static class Visitor extends AbstractSourceVisitor
@@ -29,15 +21,15 @@ public class UndesiredNullabilityAnnotation extends SourceRule
             "lombok.NonNull");
 
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
         {
             process(markerAnnotation);
-            super.visit(markerAnnotation, arg);
+            super.visit(markerAnnotation, context);
         }
 
         private void process(AnnotationExpr annotation)
         {
-            if (!ANNOTATION_NAMES.contains(annotation.getNameAsString()))
+            if (!isRelatedToNullness(annotation))
             {
                 return;
             }
@@ -48,61 +40,50 @@ public class UndesiredNullabilityAnnotation extends SourceRule
                 return;
             }
 
-            boolean isNullMarkedPackage = findAncestor(annotation,
-                CompilationUnit.class).flatMap(CompilationUnit::getStorage)
-                .map(CompilationUnit.Storage::getDirectory)
-                .map(path -> path.resolve("package-info.java"))
-                .map(path -> {
-                    try
-                    {
-                        return StaticJavaParser.parse(path);
-                    }
-                    catch (IOException e)
-                    {
-                        throw new UncheckedIOException(e);
-                    }
-                })
-                .flatMap(CompilationUnit::getPackageDeclaration)
-                .flatMap(packageDeclaration -> packageDeclaration.getAnnotationByClass(NullMarked.class))
-                .isPresent();
-
-            if (!isNullMarkedPackage)
+            if (isOutsideNullMarkedCode(annotation))
             {
                 return;
             }
 
             addViolation("%s uses undesired annotation %s in %s",
-                getEnclosingTypeName(annotation),
+                getContext().getEnclosingTypeName(annotation),
                 qualifiedName,
-                getFileLocation(annotation));
+                getContext().getFileLocation(annotation));
+        }
+
+        private boolean isRelatedToNullness(AnnotationExpr annotation)
+        {
+            return ANNOTATION_NAMES.contains(annotation.getNameAsString());
         }
 
         private String getQualifiedName(AnnotationExpr annotation)
         {
-            try
-            {
-                return annotation.resolve()
-                    .getQualifiedName();
-            }
-            catch (UnsolvedSymbolException e)
-            {
-                throw new ConfigurationException("Cannot resolve qualified name for annotation %s used by %s in %s".formatted(
-                    annotation.getNameAsString(),
-                    getEnclosingTypeName(annotation),
-                    getFileLocation(annotation)), e);
-            }
+            return getContext().resolve(annotation)
+                .getQualifiedName();
+        }
+
+        private boolean isOutsideNullMarkedCode(AnnotationExpr annotation)
+        {
+            return !isInsideNullMarkedCode(annotation);
+        }
+
+        private boolean isInsideNullMarkedCode(AnnotationExpr annotation)
+        {
+            return CodeNullness.isInNullMarkedClass(annotation) || CodeNullness.isInNullMarkedPackage(getContext());
         }
 
         @Override
-        public void visit(SingleMemberAnnotationExpr singleMemberAnnotation, Void unused)
+        public void visit(SingleMemberAnnotationExpr singleMemberAnnotation, Context context)
         {
-            super.visit(singleMemberAnnotation, unused);
+            process(singleMemberAnnotation);
+            super.visit(singleMemberAnnotation, context);
         }
 
         @Override
-        public void visit(NormalAnnotationExpr normalAnnotation, Void arg)
+        public void visit(NormalAnnotationExpr normalAnnotation, Context context)
         {
-            super.visit(normalAnnotation, arg);
+            process(normalAnnotation);
+            super.visit(normalAnnotation, context);
         }
     }
 
@@ -117,7 +98,7 @@ public class UndesiredNullabilityAnnotation extends SourceRule
     @Override
     public String getDescription()
     {
-        return "@NullMarked packages may only use nullability annotations from jSpecify (and Lombok's @NonNull)";
+        return "@NullMarked code may only use nullability annotations from jSpecify (and Lombok's @NonNull)";
     }
 
     @Override
