@@ -50,7 +50,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new);
 
             List<Node> nodes = assignmentNode.getChildNodes();
-            if (nodes.size() != 2 || nodesAreDifferent(nodes.get(0), annotation) ||
+            if (nodes.size() != 2 ||
+                nodesAreDifferent(nodes.get(0), annotation) ||
                 !(nodes.get(1) instanceof VariableDeclarator variableDeclarator) ||
                 variableDeclarator.getInitializer()
                     .filter(Expression::isSwitchExpr)

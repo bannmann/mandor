@@ -14,7 +14,6 @@ import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.mizool.core.exception.ConfigurationException;
-import dev.bannmann.labs.annotations.SuppressWarningsRationale;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
 import dev.bannmann.mandor.core.SourceRule;
 
