@@ -10,7 +10,7 @@
 
     <groupId>dev.bannmann.mandor</groupId>
     <artifactId>mandor</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
