@@ -5,7 +5,7 @@
     <parent>
         <groupId>dev.bannmann.mandor</groupId>
         <artifactId>mandor</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </parent>
 
     <artifactId>annotations</artifactId>

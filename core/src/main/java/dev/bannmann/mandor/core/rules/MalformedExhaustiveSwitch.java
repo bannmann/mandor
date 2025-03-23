@@ -15,17 +15,19 @@ import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
+import dev.bannmann.mandor.core.util.Nodes;
 
 public class MalformedExhaustiveSwitch extends SourceRule
 {
     private static class Visitor extends AbstractSourceVisitor
     {
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
         {
+            super.visit(markerAnnotation, context);
             process(markerAnnotation);
-            super.visit(markerAnnotation, arg);
         }
 
         private void process(AnnotationExpr annotation)
@@ -39,8 +41,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
             if (!isUsedCorrectly(annotation))
             {
                 addViolation("%s uses @ExhaustiveSwitch incorrectly in %s",
-                    getEnclosingTypeName(annotation),
-                    getFileLocation(annotation));
+                    getContext().getEnclosingTypeName(annotation),
+                    getContext().getFileLocation(annotation));
             }
         }
 
@@ -50,7 +52,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new);
 
             List<Node> nodes = assignmentNode.getChildNodes();
-            if (nodes.size() != 2 || nodesAreDifferent(nodes.get(0), annotation) ||
+            if (nodes.size() != 2 ||
+                Nodes.nodesAreDifferent(nodes.get(0), annotation) ||
                 !(nodes.get(1) instanceof VariableDeclarator variableDeclarator) ||
                 variableDeclarator.getInitializer()
                     .filter(Expression::isSwitchExpr)
@@ -61,8 +64,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
 
             SimpleName assignedVariableName = variableDeclarator.getName();
 
-            ExpressionStmt assignmentStatement = findAncestor(assignmentNode, ExpressionStmt.class).orElseThrow(
-                CodeInconsistencyException::new);
+            ExpressionStmt assignmentStatement = Nodes.findAncestor(assignmentNode, ExpressionStmt.class)
+                .orElseThrow(CodeInconsistencyException::new);
 
             return getNextSiblingNode(assignmentStatement) instanceof ExpressionStmt nextStatement &&
                 isMethodCallViaVariable(nextStatement, assignedVariableName);
@@ -74,7 +77,7 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new)
                 .getChildNodes()
                 .stream()
-                .dropWhile(node -> nodesAreDifferent(node, startingNode))
+                .dropWhile(node -> Nodes.nodesAreDifferent(node, startingNode))
                 .skip(1)
                 .findFirst()
                 .orElse(null);

@@ -4,11 +4,14 @@ import java.util.Optional;
 
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.labs.core.StreamExtras;
 import dev.bannmann.mandor.core.AbstractSourceVisitor;
+import dev.bannmann.mandor.core.Context;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class OvercomplicatedSuppressionRationale extends SourceRule
@@ -16,9 +19,9 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
     private static class Visitor extends AbstractSourceVisitor
     {
         @Override
-        public void visit(NormalAnnotationExpr annotation, Void unused)
+        public void visit(NormalAnnotationExpr annotation, Context context)
         {
-            super.visit(annotation, unused);
+            super.visit(annotation, context);
             processAnnotation(annotation);
         }
 
@@ -26,7 +29,17 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
         {
             if (isSuppressWarningsRationale(annotation))
             {
-                validateMultipleSuppressionsExist(annotation);
+                if (specifiesName(annotation))
+                {
+                    validateMultipleSuppressionsExist(annotation);
+                }
+
+                if (shouldUseSingleMemberForm(annotation))
+                {
+                    addViolation("%s needlessly uses the full `value=\"…\"` syntax for a rationale in %s",
+                        getContext().getEnclosingTypeName(annotation),
+                        getContext().getFileLocation(annotation));
+                }
             }
         }
 
@@ -36,6 +49,15 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                 .equals("SuppressWarningsRationale") ||
                 annotation.getNameAsString()
                     .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
+        }
+
+        private boolean specifiesName(AnnotationExpr annotation)
+        {
+            return annotation instanceof NormalAnnotationExpr normalAnnotationExpr &&
+                normalAnnotationExpr.getPairs()
+                    .stream()
+                    .map(NodeWithSimpleName::getNameAsString)
+                    .anyMatch(name -> name.equals("name"));
         }
 
         private void validateMultipleSuppressionsExist(NormalAnnotationExpr annotation)
@@ -56,9 +78,17 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
                 .isEmpty())
             {
                 addViolation("%s needlessly specifies a suppression name for a rationale in %s",
-                    getEnclosingTypeName(annotation),
-                    getFileLocation(annotation));
+                    getContext().getEnclosingTypeName(annotation),
+                    getContext().getFileLocation(annotation));
             }
+        }
+
+        private boolean shouldUseSingleMemberForm(NormalAnnotationExpr annotation)
+        {
+            return annotation.getPairs()
+                .stream()
+                .map(MemberValuePair::getNameAsString)
+                .allMatch(name -> name.equals("value"));
         }
     }
 
@@ -73,7 +103,7 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
     @Override
     public String getDescription()
     {
-        return "@SuppressWarningsRationale may only specify a 'name' if there is more than one suppression";
+        return "@SuppressWarningsRationale should use short syntax if there is only one suppression";
     }
 
     @Override
