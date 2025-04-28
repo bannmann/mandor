@@ -9,4 +9,12 @@
     </parent>
 
     <artifactId>annotations</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.mizool</groupId>
+            <artifactId>mizool-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
