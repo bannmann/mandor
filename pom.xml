@@ -5,7 +5,7 @@
     <parent>
         <groupId>dev.bannmann</groupId>
         <artifactId>base</artifactId>
-        <version>1.8</version>
+        <version>1.13</version>
     </parent>
 
     <groupId>dev.bannmann.mandor</groupId>
@@ -28,6 +28,7 @@
     </scm>
 
     <properties>
+        <base.central.deploymentName>mandor ${project.version}</base.central.deploymentName>
         <base.toolchains.jdk>17</base.toolchains.jdk>
         <error_prone.version>2.27.1</error_prone.version>
         <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
