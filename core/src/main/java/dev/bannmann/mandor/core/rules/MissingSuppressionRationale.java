@@ -33,7 +33,7 @@ public class MissingSuppressionRationale extends SourceRule
              * to check for, we do that.
              */
             if (annotation.getNameAsString()
-                .equals("SuppressWarnings") ||
+                    .equals("SuppressWarnings") ||
                 annotation.getNameAsString()
                     .equals("java.lang.SuppressWarnings"))
             {

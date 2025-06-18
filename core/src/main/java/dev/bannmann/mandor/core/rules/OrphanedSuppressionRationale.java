@@ -33,9 +33,9 @@ public class OrphanedSuppressionRationale extends SourceRule
         private boolean isSuppressWarningsRationale(AnnotationExpr annotation)
         {
             return annotation.getNameAsString()
-                .equals("SuppressWarningsRationale") ||
-                annotation.getNameAsString()
-                    .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
+                       .equals("SuppressWarningsRationale") ||
+                   annotation.getNameAsString()
+                       .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
         }
 
         private void validateSuppressionExists(AnnotationExpr annotation)

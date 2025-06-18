@@ -61,9 +61,9 @@ public class SourceBundle
     private boolean isJavaSourceFile(Path filePath, BasicFileAttributes fileAttr)
     {
         return fileAttr.isRegularFile() &&
-            filePath.getFileName()
-                .toString()
-                .endsWith(".java");
+               filePath.getFileName()
+                   .toString()
+                   .endsWith(".java");
     }
 
     private CompilationUnit parse(Path path)
