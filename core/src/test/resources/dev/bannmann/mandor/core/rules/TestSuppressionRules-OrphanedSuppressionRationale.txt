@@ -1,0 +1,1 @@
+com.example.suppression.BadSuppression gives a rationale without suppressing a warning in (BadSuppression.java:25)

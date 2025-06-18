@@ -6,13 +6,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 
@@ -39,9 +43,24 @@ public class SourceBundle
 
     public SourceBundle importSources(Path start)
     {
+        return importSources(start, this::isJavaSourceFile);
+    }
+
+    public SourceBundle importSources(Path start, Predicate<Path> filePredicate)
+    {
+        return importSources(start, combine(this::isJavaSourceFile, filePredicate));
+    }
+
+    private <T, U> BiPredicate<T, U> combine(BiPredicate<T, U> biPredicate, Predicate<T> predicate)
+    {
+        return biPredicate.and((t, u) -> predicate.test(t));
+    }
+
+    private SourceBundle importSources(Path start, BiPredicate<Path, BasicFileAttributes> biPredicate)
+    {
         try
         {
-            try (Stream<Path> pathStream = Files.find(start, Integer.MAX_VALUE, this::isJavaSourceFile))
+            try (Stream<Path> pathStream = Files.find(start, Integer.MAX_VALUE, biPredicate))
             {
                 pathStream.forEach(path -> {
                     var compilationUnit = parse(path);
@@ -80,6 +99,20 @@ public class SourceBundle
 
     public SourceBundle verify(SourceRule rule)
     {
+        var violations = runScan(rule);
+        if (!violations.isEmpty())
+        {
+            throw new AssertionError("Rule '%s' was violated (%d times):%n%s".formatted(rule.getDescription(),
+                violations.size(),
+                String.join("\n", violations)));
+        }
+
+        return this;
+    }
+
+    @VisibleForTesting
+    List<String> runScan(SourceRule rule)
+    {
         for (Map.Entry<Path, CompilationUnit> entry : compilationUnits.entries())
         {
             var compilationUnit = entry.getValue();
@@ -89,15 +122,7 @@ public class SourceBundle
             rule.scan(compilationUnit, context);
         }
 
-        var violations = rule.getViolations();
-        if (!violations.isEmpty())
-        {
-            throw new AssertionError("Rule '%s' was violated (%d times):%n%s".formatted(rule.getDescription(),
-                violations.size(),
-                String.join("\n", violations)));
-        }
-
-        return this;
+        return rule.getViolations();
     }
 
     private Stream<CompilationUnit> lookupCompilationUnit(Path path)

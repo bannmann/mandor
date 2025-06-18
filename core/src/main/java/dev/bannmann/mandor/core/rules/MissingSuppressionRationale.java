@@ -3,6 +3,7 @@ package dev.bannmann.mandor.core.rules;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -87,7 +88,8 @@ public class MissingSuppressionRationale extends SourceRule
                 .map(this::readStringValue)
                 .collect(Collectors.toSet());
 
-            Sets.SetView<String> suppressedWithoutRationale = Sets.difference(suppressedNames, rationaleNames);
+            TreeSet<String> suppressedWithoutRationale = new TreeSet<>(Sets.difference(suppressedNames,
+                rationaleNames));
             if (suppressedWithoutRationale.isEmpty())
             {
                 return;
