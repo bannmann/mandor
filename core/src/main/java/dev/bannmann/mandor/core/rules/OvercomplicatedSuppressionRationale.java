@@ -46,18 +46,18 @@ public class OvercomplicatedSuppressionRationale extends SourceRule
         private boolean isSuppressWarningsRationale(AnnotationExpr annotation)
         {
             return annotation.getNameAsString()
-                .equals("SuppressWarningsRationale") ||
-                annotation.getNameAsString()
-                    .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
+                       .equals("SuppressWarningsRationale") ||
+                   annotation.getNameAsString()
+                       .equals("dev.bannmann.labs.annotations.SuppressWarningsRationale");
         }
 
         private boolean specifiesName(AnnotationExpr annotation)
         {
             return annotation instanceof NormalAnnotationExpr normalAnnotationExpr &&
-                normalAnnotationExpr.getPairs()
-                    .stream()
-                    .map(NodeWithSimpleName::getNameAsString)
-                    .anyMatch(name -> name.equals("name"));
+                   normalAnnotationExpr.getPairs()
+                       .stream()
+                       .map(NodeWithSimpleName::getNameAsString)
+                       .anyMatch(name -> name.equals("name"));
         }
 
         private void validateMultipleSuppressionsExist(NormalAnnotationExpr annotation)

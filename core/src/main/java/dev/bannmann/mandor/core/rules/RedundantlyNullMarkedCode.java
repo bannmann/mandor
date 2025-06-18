@@ -31,7 +31,9 @@ public class RedundantlyNullMarkedCode extends SourceRule
 
         private void process(AnnotationExpr annotation)
         {
-            if (annotation.getParentNode().filter(PackageDeclaration.class::isInstance).isPresent())
+            if (annotation.getParentNode()
+                .filter(PackageDeclaration.class::isInstance)
+                .isPresent())
             {
                 // "Package" is the top level for our checks, so it makes no sense to hunt for redundancies.
                 return;
@@ -78,9 +80,9 @@ public class RedundantlyNullMarkedCode extends SourceRule
                 .flatMap(packageDeclaration -> packageDeclaration.getAnnotations()
                     .stream())
                 .filter(annotationExpr -> annotationExpr.getNameAsString()
-                    .equals("NullMarked") ||
-                    annotationExpr.getNameAsString()
-                        .equals("NullUnmarked"))
+                                              .equals("NullMarked") ||
+                                          annotationExpr.getNameAsString()
+                                              .equals("NullUnmarked"))
                 .collect(Collectors.toSet());
             if (nullabilityAnnotations.isEmpty())
             {
@@ -91,7 +93,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
             if (nullabilityAnnotations.size() > 1)
             {
                 throw new IllegalArgumentException("Conflicting NullMarked/NullUnmarked annotations on package of " +
-                    getContext().getFilePath());
+                                                   getContext().getFilePath());
             }
 
             /*

@@ -40,8 +40,7 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
                 return;
             }
 
-            if (CodeNullness.isInNullMarkedClass(annotation) ||
-                CodeNullness.isInNullMarkedPackage(getContext()))
+            if (CodeNullness.isInNullMarkedClass(annotation) || CodeNullness.isInNullMarkedPackage(getContext()))
             {
                 return;
             }

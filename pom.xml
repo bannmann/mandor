@@ -10,7 +10,7 @@
 
     <groupId>dev.bannmann.mandor</groupId>
     <artifactId>mandor</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -54,6 +54,23 @@
                 <groupId>dev.bannmann.labs</groupId>
                 <artifactId>core</artifactId>
                 <version>${labs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.bannmann.mandor</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.grey-panther</groupId>
+                <artifactId>natural-comparator</artifactId>
+                <version>1.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.27.3</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.jspecify</groupId>

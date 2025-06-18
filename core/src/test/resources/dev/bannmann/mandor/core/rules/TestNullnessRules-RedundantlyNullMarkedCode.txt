@@ -1,0 +1,2 @@
+Despite the enclosing scope already being @NullMarked, com.example.nullness.Redundancy1 specifies it again in (Redundancy1.java:8)
+Despite the package already being @NullMarked, com.example.nullness.null_marked.Redundancy2 specifies it again in (Redundancy2.java:5)

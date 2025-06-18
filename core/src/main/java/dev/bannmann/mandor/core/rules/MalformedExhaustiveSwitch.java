@@ -68,7 +68,7 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new);
 
             return getNextSiblingNode(assignmentStatement) instanceof ExpressionStmt nextStatement &&
-                isMethodCallViaVariable(nextStatement, assignedVariableName);
+                   isMethodCallViaVariable(nextStatement, assignedVariableName);
         }
 
         private @Nullable Node getNextSiblingNode(Node startingNode)
@@ -86,8 +86,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
         private boolean isMethodCallViaVariable(ExpressionStmt subsequentStatement, SimpleName variableName)
         {
             return getFirstExpressionOfMethodCall(subsequentStatement) instanceof NameExpr methodnameExpr &&
-                methodnameExpr.getName()
-                    .equals(variableName);
+                   methodnameExpr.getName()
+                       .equals(variableName);
         }
 
         private @Nullable Node getFirstExpressionOfMethodCall(ExpressionStmt expressionStmt)
@@ -116,7 +116,7 @@ public class MalformedExhaustiveSwitch extends SourceRule
     public String getDescription()
     {
         return "@ExhaustiveSwitch must annotate variable initialized with a switch expression, followed by a method " +
-            "call on it";
+               "call on it";
     }
 
     @Override

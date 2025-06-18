@@ -1,0 +1,2 @@
+com.example.suppression.BadSuppression needlessly specifies a suppression name for a rationale in (BadSuppression.java:6)
+com.example.suppression.BadSuppression needlessly specifies a suppression name for a rationale in (BadSuppression.java:14)

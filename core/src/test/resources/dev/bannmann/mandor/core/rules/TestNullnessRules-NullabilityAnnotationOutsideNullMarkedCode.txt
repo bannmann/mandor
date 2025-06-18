@@ -1,0 +1,3 @@
+com.example.nullness.OutsideUse is not NullMarked but uses a jSpecify nullability annotation in (OutsideUse.java:8)
+com.example.nullness.OutsideUse is not NullMarked but uses a jSpecify nullability annotation in (OutsideUse.java:10)
+com.example.nullness.OutsideUse is not NullMarked but uses a jSpecify nullability annotation in (OutsideUse.java:12)
