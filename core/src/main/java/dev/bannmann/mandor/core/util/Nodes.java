@@ -1,6 +1,7 @@
 package dev.bannmann.mandor.core.util;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import lombok.experimental.UtilityClass;
 
@@ -16,6 +17,13 @@ public class Nodes
     public static <T> Optional<T> findAncestor(HasParentNode<Node> node, Class<T> ancestorClass)
     {
         return node.findAncestor(ancestorClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    @SuppressWarningsRationale("findAncestor() is safe, but does not have @SafeVarargs")
+    public static <T> Optional<T> findAncestor(HasParentNode<Node> node, Predicate<T> predicate, Class<T> ancestorClass)
+    {
+        return node.findAncestor(predicate, ancestorClass);
     }
 
     public static boolean nodesAreDifferent(Node a, Node b)
