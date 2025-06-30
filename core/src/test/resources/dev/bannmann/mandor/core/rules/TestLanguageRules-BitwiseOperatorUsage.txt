@@ -1,0 +1,6 @@
+com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:12)
+com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:15)
+com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:16)
+com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:36)
+com.example.language.CrypticMath uses bitwise operator in (CrypticMath.java:10)
+com.example.language.CrypticMath uses bitwise operator in (CrypticMath.java:15)
