@@ -14,6 +14,7 @@ public class BadSwitch
     {
         var someChoice = SomeChoice.valueOf(args[0]);
 
+        new BadSwitch(someChoice);
         case1(someChoice);
         case2(someChoice);
     }
@@ -50,5 +51,12 @@ public class BadSwitch
         };
 
         handler.run();
+    }
+
+    @SuppressWarnings("MalformedExhaustiveSwitch")
+    private BadSwitch(SomeChoice someChoice)
+    {
+        // No violation of MalformedExhaustiveSwitch due to @SuppressWarnings above
+        @ExhaustiveSwitch Runnable handler;
     }
 }

@@ -2,24 +2,31 @@ package dev.bannmann.mandor.core.rules;
 
 import java.util.Optional;
 
+import org.kohsuke.MetaInfServices;
+
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.labs.core.StreamExtras;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
-public class OrphanedSuppressionRationale extends SourceRule
+@MetaInfServices
+public final class OrphanedSuppressionRationale extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(SingleMemberAnnotationExpr annotation, Context context)
+        public void visit(SingleMemberAnnotationExpr annotation, Void unused)
         {
             processAnnotation(annotation);
-            super.visit(annotation, context);
+            super.visit(annotation, unused);
         }
 
         private void processAnnotation(AnnotationExpr annotation)
@@ -54,25 +61,43 @@ public class OrphanedSuppressionRationale extends SourceRule
             if (suppressionAnnotationOptional.isEmpty())
             {
                 addViolation("%s gives a rationale without suppressing a warning in %s",
-                    getContext().getEnclosingTypeName(annotation),
-                    getContext().getFileLocation(annotation));
+                    Nodes.getEnclosingTypeName(annotation),
+                    getContext().getCodeLocation(annotation));
             }
         }
 
         @Override
-        public void visit(NormalAnnotationExpr annotation, Context context)
+        public void visit(NormalAnnotationExpr annotation, Void arg)
         {
             processAnnotation(annotation);
-            super.visit(annotation, context);
+            super.visit(annotation, arg);
+        }
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(ConstructorDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(MethodDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
         }
     }
 
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override
@@ -85,5 +110,11 @@ public class OrphanedSuppressionRationale extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

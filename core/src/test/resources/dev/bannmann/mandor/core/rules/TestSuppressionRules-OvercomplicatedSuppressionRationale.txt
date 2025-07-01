@@ -1,2 +1,3 @@
 com.example.suppression.BadSuppression needlessly specifies a suppression name for a rationale in (BadSuppression.java:6)
 com.example.suppression.BadSuppression needlessly specifies a suppression name for a rationale in (BadSuppression.java:14)
+com.example.suppression.BadSuppression needlessly uses the full `value="…"` syntax for a rationale in (BadSuppression.java:31)

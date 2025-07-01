@@ -3,9 +3,14 @@ package dev.bannmann.mandor.core.rules;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.kohsuke.MetaInfServices;
+
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -13,19 +18,21 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.mizool.core.exception.CodeInconsistencyException;
 import com.google.common.collect.Sets;
 import dev.bannmann.labs.core.StreamExtras;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
+import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
-public class MissingSuppressionRationale extends SourceRule
+@MetaInfServices
+public final class MissingSuppressionRationale extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(SingleMemberAnnotationExpr annotation, Context context)
+        public void visit(SingleMemberAnnotationExpr annotation, Void unused)
         {
             /*
              * Technically, a custom @SuppressWarnings might exist in another package, but we ignore that for now.
@@ -49,11 +56,11 @@ public class MissingSuppressionRationale extends SourceRule
                 }
                 else
                 {
-                    throw new IllegalArgumentException(createExceptionMessage(memberValue));
+                    throw new UnprocessableSourceCodeException(createExceptionMessage(memberValue));
                 }
             }
 
-            super.visit(annotation, context);
+            super.visit(annotation, unused);
         }
 
         private void verifyRationalePresent(SingleMemberAnnotationExpr annotation, StringLiteralExpr stringExpression)
@@ -88,8 +95,7 @@ public class MissingSuppressionRationale extends SourceRule
                 .map(this::readStringValue)
                 .collect(Collectors.toSet());
 
-            TreeSet<String> suppressedWithoutRationale = new TreeSet<>(Sets.difference(suppressedNames,
-                rationaleNames));
+            Sets.SetView<String> suppressedWithoutRationale = Sets.difference(suppressedNames, rationaleNames);
             if (suppressedWithoutRationale.isEmpty())
             {
                 return;
@@ -100,11 +106,12 @@ public class MissingSuppressionRationale extends SourceRule
                 : "warning";
 
             addViolation("%s suppresses %s %s without giving rationale in %s",
-                getContext().getEnclosingTypeName(suppressionAnnotation),
+                Nodes.getEnclosingTypeName(suppressionAnnotation),
                 what,
                 suppressedWithoutRationale.stream()
+                    .sorted()
                     .collect(Collectors.joining("', '", "'", "'")),
-                getContext().getFileLocation(suppressionAnnotation));
+                getContext().getCodeLocation(suppressionAnnotation));
         }
 
         private Optional<Expression> getName(AnnotationExpr annotationExpression)
@@ -127,7 +134,7 @@ public class MissingSuppressionRationale extends SourceRule
                     .map(MemberValuePair::getValue);
             }
 
-            throw new CodeInconsistencyException("Unexpected type of annotation expression (%s): %s".formatted(
+            throw new UnprocessableSourceCodeException("Unexpected type of annotation expression (%s): %s".formatted(
                 annotationExpression.getClass()
                     .getSimpleName(),
                 annotationExpression));
@@ -135,12 +142,12 @@ public class MissingSuppressionRationale extends SourceRule
 
         private String readStringValue(Expression expression)
         {
-            if (expression instanceof StringLiteralExpr stringLiteralExpr)
+            if (!(expression instanceof StringLiteralExpr stringLiteralExpr))
             {
-                return stringLiteralExpr.asString();
+                throw new UnprocessableSourceCodeException(createExceptionMessage(expression));
             }
 
-            throw new IllegalArgumentException(createExceptionMessage(expression));
+            return stringLiteralExpr.asString();
         }
 
         private void verifyRationalePresent(SingleMemberAnnotationExpr annotation, ArrayInitializerExpr array)
@@ -149,12 +156,12 @@ public class MissingSuppressionRationale extends SourceRule
                 array.getValues()
                     .stream()
                     .map(arrayValueExpression -> {
-                        if (arrayValueExpression instanceof StringLiteralExpr stringExpression)
+                        if (!(arrayValueExpression instanceof StringLiteralExpr stringExpression))
                         {
-                            return stringExpression.asString();
+                            throw new IllegalArgumentException(createExceptionMessage(arrayValueExpression));
                         }
 
-                        throw new IllegalArgumentException(createExceptionMessage(arrayValueExpression));
+                        return stringExpression.asString();
                     })
                     .toArray(String[]::new));
         }
@@ -162,16 +169,34 @@ public class MissingSuppressionRationale extends SourceRule
         private String createExceptionMessage(Expression expression)
         {
             return "Unsupported expression type for @SuppressWarnings: %s in %s".formatted(expression,
-                getContext().getFileLocation(expression));
+                getContext().getCodeLocation(expression));
+        }
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(ConstructorDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(MethodDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
         }
     }
 
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override
@@ -184,5 +209,11 @@ public class MissingSuppressionRationale extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

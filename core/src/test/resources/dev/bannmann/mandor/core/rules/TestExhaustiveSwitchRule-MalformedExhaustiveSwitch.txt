@@ -1,2 +1,2 @@
-com.example.exhaustive_switch.BadSwitch uses @ExhaustiveSwitch incorrectly in (BadSwitch.java:24)
-com.example.exhaustive_switch.BadSwitch uses @ExhaustiveSwitch incorrectly in (BadSwitch.java:40)
+com.example.exhaustive_switch.BadSwitch uses @ExhaustiveSwitch incorrectly in (BadSwitch.java:25)
+com.example.exhaustive_switch.BadSwitch uses @ExhaustiveSwitch incorrectly in (BadSwitch.java:41)

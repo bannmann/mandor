@@ -11,21 +11,21 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
-import dev.bannmann.mandor.core.Context;
-import dev.bannmann.mandor.core.util.Nodes;
+import dev.bannmann.mandor.core.Nodes;
+import dev.bannmann.mandor.core.RuleContext;
 
 @UtilityClass
 class CodeNullness
 {
     public static boolean isInNullMarkedClass(HasParentNode<Node> node)
     {
-        return Nodes.findAncestor(node, CodeNullness::hasNullMarkedAnnotation, TypeDeclaration.class)
+        return Nodes.findAncestor(node, TypeDeclaration.class, CodeNullness::hasNullMarkedAnnotation)
             .isPresent();
     }
 
     private static boolean hasNullMarkedAnnotation(TypeDeclaration<?> o)
     {
-        return CodeNullness.getNullMarkedAnnotation(o)
+        return getNullMarkedAnnotation(o)
             .isPresent();
     }
 
@@ -34,7 +34,7 @@ class CodeNullness
         return node.getAnnotationByClass(NullMarked.class);
     }
 
-    public static boolean isInNullMarkedPackage(Context context)
+    public static boolean isInNullMarkedPackage(RuleContext context)
     {
         return context.getPackageInfoFiles()
             .flatMap(packageDeclaration -> getNullMarkedAnnotation(packageDeclaration).stream())

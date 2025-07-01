@@ -1,2 +1,3 @@
-com.example.nullness.null_marked.UseOfUndesiredAnnotation uses undesired annotation com.example.nullness.other.Nullable in (UseOfUndesiredAnnotation.java:11)
-com.example.nullness.null_marked.UseOfUndesiredAnnotation uses undesired annotation org.checkerframework.checker.nullness.qual.NonNull in (UseOfUndesiredAnnotation.java:13)
+com.example.nullness.null_marked.UseOfUndesiredAnnotation uses undesired annotation com.example.nullness.other.Nullable in (UseOfUndesiredAnnotation.java:13)
+com.example.nullness.null_marked.UseOfUndesiredAnnotation uses undesired annotation javax.validation.constraints.NotNull in (UseOfUndesiredAnnotation.java:17)
+com.example.nullness.null_marked.UseOfUndesiredAnnotation uses undesired annotation org.checkerframework.checker.nullness.qual.NonNull in (UseOfUndesiredAnnotation.java:15)

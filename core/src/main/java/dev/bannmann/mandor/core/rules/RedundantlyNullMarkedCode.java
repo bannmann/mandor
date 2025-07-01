@@ -6,27 +6,34 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
+import org.kohsuke.MetaInfServices;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.mizool.core.exception.CodeInconsistencyException;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
+import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
+@MetaInfServices
 public class RedundantlyNullMarkedCode extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
         {
             process(markerAnnotation);
-            super.visit(markerAnnotation, context);
+            super.visit(markerAnnotation, arg);
         }
 
         private void process(AnnotationExpr annotation)
@@ -44,7 +51,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
                 return;
             }
 
-            var resolvedAnnotationDeclaration = getContext().resolve(annotation);
+            var resolvedAnnotationDeclaration = annotation.resolve();
             if (annotationHasMismatchingType(resolvedAnnotationDeclaration))
             {
                 return;
@@ -66,8 +73,8 @@ public class RedundantlyNullMarkedCode extends SourceRule
                 }
 
                 addViolation("Despite the enclosing scope already being @NullMarked, %s specifies it again in %s",
-                    getContext().getEnclosingTypeName(annotation),
-                    getContext().getFileLocation(annotation));
+                    Nodes.getEnclosingTypeName(annotation),
+                    getContext().getCodeLocation(annotation));
                 return;
             }
 
@@ -92,8 +99,8 @@ public class RedundantlyNullMarkedCode extends SourceRule
 
             if (nullabilityAnnotations.size() > 1)
             {
-                throw new IllegalArgumentException("Conflicting NullMarked/NullUnmarked annotations on package of " +
-                                                   getContext().getFilePath());
+                throw new UnprocessableSourceCodeException(
+                    "Conflicting NullMarked/NullUnmarked annotations on package of " + getContext().getFilePath());
             }
 
             /*
@@ -111,8 +118,8 @@ public class RedundantlyNullMarkedCode extends SourceRule
             }
 
             addViolation("Despite the package already being @NullMarked, %s specifies it again in %s",
-                getContext().getEnclosingTypeName(annotation),
-                getContext().getFileLocation(annotation));
+                Nodes.getEnclosingTypeName(annotation),
+                getContext().getCodeLocation(annotation));
         }
 
         private boolean annotationHasMismatchingSimpleName(AnnotationExpr annotation)
@@ -158,14 +165,32 @@ public class RedundantlyNullMarkedCode extends SourceRule
         {
             return nodeWithAnnotations.isAnnotationPresent(NullUnmarked.class);
         }
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(ConstructorDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(MethodDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
     }
 
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override
@@ -178,5 +203,11 @@ public class RedundantlyNullMarkedCode extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }
