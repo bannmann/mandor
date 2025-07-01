@@ -1,25 +1,26 @@
 package dev.bannmann.mandor.core.rules;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.types.ResolvedPrimitiveType;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserVariableDeclaration;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class BitwiseOperatorUsage extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(BinaryExpr expression, Context arg)
+        public void visit(BinaryExpr expression, Void arg)
         {
             super.visit(expression, arg);
 
@@ -47,8 +48,8 @@ public class BitwiseOperatorUsage extends SourceRule
                     expression)));
 
             addViolation("%s uses bitwise operator in %s",
-                getContext().getEnclosingTypeName(node),
-                getContext().getFileLocation(node));
+                Nodes.getEnclosingTypeName(node),
+                getContext().getCodeLocation(node));
         }
 
         private boolean isBoolean(Expression expression)
@@ -72,7 +73,7 @@ public class BitwiseOperatorUsage extends SourceRule
         }
 
         @Override
-        public void visit(AssignExpr expression, Context arg)
+        public void visit(AssignExpr expression, Void arg)
         {
             super.visit(expression, arg);
 
@@ -117,9 +118,9 @@ public class BitwiseOperatorUsage extends SourceRule
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override

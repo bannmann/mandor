@@ -6,11 +6,12 @@ import java.util.Set;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
 public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
@@ -18,13 +19,13 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
     private static final Set<Class<? extends Annotation>> NULLABILITY_ANNOTATIONS = Set.of(NonNull.class,
         Nullable.class);
 
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
         {
             process(markerAnnotation);
-            super.visit(markerAnnotation, context);
+            super.visit(markerAnnotation, arg);
         }
 
         private void process(AnnotationExpr annotation)
@@ -34,7 +35,7 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
                 return;
             }
 
-            var resolvedAnnotationDeclaration = getContext().resolve(annotation);
+            var resolvedAnnotationDeclaration = annotation.resolve();
             if (annotationHasMismatchingType(resolvedAnnotationDeclaration))
             {
                 return;
@@ -46,8 +47,8 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
             }
 
             addViolation("%s is not NullMarked but uses a jSpecify nullability annotation in %s",
-                getContext().getEnclosingTypeName(annotation),
-                getContext().getFileLocation(annotation));
+                Nodes.getEnclosingTypeName(annotation),
+                getContext().getCodeLocation(annotation));
         }
 
         private boolean annotationHasMismatchingSimpleName(AnnotationExpr annotation)
@@ -61,16 +62,16 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
         {
             return NULLABILITY_ANNOTATIONS.stream()
                 .map(Class::getName)
-                .noneMatch(s -> s.equals(resolvedAnnotationDeclaration.getName()));
+                .noneMatch(s -> s.equals(resolvedAnnotationDeclaration.getQualifiedName()));
         }
     }
 
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override

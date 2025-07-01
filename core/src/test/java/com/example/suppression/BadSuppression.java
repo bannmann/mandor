@@ -26,4 +26,8 @@ public class BadSuppression
     public void bar()
     {
     }
+
+    @SuppressWarnings("X:Gamma")
+    @SuppressWarningsRationale(value = "...") // Violation: OvercomplicatedSuppressionRationale
+    private boolean visible;
 }

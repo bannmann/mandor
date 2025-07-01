@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -13,21 +14,20 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.mizool.core.exception.CodeInconsistencyException;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
-import dev.bannmann.mandor.core.util.Nodes;
 
-public class MalformedExhaustiveSwitch extends SourceRule
+public final class MalformedExhaustiveSwitch extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
         {
-            super.visit(markerAnnotation, context);
             process(markerAnnotation);
+            super.visit(markerAnnotation, arg);
         }
 
         private void process(AnnotationExpr annotation)
@@ -41,8 +41,8 @@ public class MalformedExhaustiveSwitch extends SourceRule
             if (!isUsedCorrectly(annotation))
             {
                 addViolation("%s uses @ExhaustiveSwitch incorrectly in %s",
-                    getContext().getEnclosingTypeName(annotation),
-                    getContext().getFileLocation(annotation));
+                    Nodes.getEnclosingTypeName(annotation),
+                    getContext().getCodeLocation(annotation));
             }
         }
 
@@ -52,8 +52,7 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new);
 
             List<Node> nodes = assignmentNode.getChildNodes();
-            if (nodes.size() != 2 ||
-                Nodes.nodesAreDifferent(nodes.get(0), annotation) ||
+            if (nodes.size() != 2 || Nodes.areDifferent(nodes.get(0), annotation) ||
                 !(nodes.get(1) instanceof VariableDeclarator variableDeclarator) ||
                 variableDeclarator.getInitializer()
                     .filter(Expression::isSwitchExpr)
@@ -77,7 +76,7 @@ public class MalformedExhaustiveSwitch extends SourceRule
                 .orElseThrow(CodeInconsistencyException::new)
                 .getChildNodes()
                 .stream()
-                .dropWhile(node -> Nodes.nodesAreDifferent(node, startingNode))
+                .dropWhile(node -> Nodes.areDifferent(node, startingNode))
                 .skip(1)
                 .findFirst()
                 .orElse(null);
@@ -107,9 +106,9 @@ public class MalformedExhaustiveSwitch extends SourceRule
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override

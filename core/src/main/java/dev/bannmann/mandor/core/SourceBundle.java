@@ -7,15 +7,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.JavaParserAdapter;
 import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.github.mizool.core.exception.CodeInconsistencyException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
@@ -23,17 +27,34 @@ import com.google.common.collect.MultimapBuilder;
 public class SourceBundle
 {
     /**
-     * All compilation units (classes, package-info) keyed to the path relative to the root directory (e.g. {@code com/example/package-info.java} or {@code com/example/Foo.java}).
+     * All compilation units (classes, package-info) keyed to the path relative to their respective root directory (e.g.
+     * {@code com/example/package-info.java} or {@code com/example/Foo.java}).
      */
     private final ListMultimap<Path, CompilationUnit> compilationUnits = MultimapBuilder.linkedHashKeys()
         .arrayListValues()
         .build();
+    private final CombinedTypeSolver sourceBasedTypeSolver;
+    private final ParserConfiguration parserConfiguration;
+    private final JavaParserAdapter javaParserAdapter;
+    private final RuleContext ruleContext;
 
     public SourceBundle()
     {
-        StaticJavaParser.getParserConfiguration()
+        sourceBasedTypeSolver = new CombinedTypeSolver();
+
+        CombinedTypeSolver typeSolverWithFallback = new CombinedTypeSolver();
+        typeSolverWithFallback.add(sourceBasedTypeSolver);
+        typeSolverWithFallback.add(new ReflectionTypeSolver(false));
+
+        parserConfiguration = new ParserConfiguration();
+        parserConfiguration
             .setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE)
-            .setSymbolResolver(new JavaSymbolSolver(new NameOnlySolver()));
+            .setSymbolResolver(new JavaSymbolSolver(typeSolverWithFallback));
+
+        var javaParser = new JavaParser(parserConfiguration);
+        javaParserAdapter = new JavaParserAdapter(javaParser);
+
+        ruleContext = new RuleContext(typeSolverWithFallback, this::lookupCompilationUnit);
     }
 
     public SourceBundle importSources(String directory)
@@ -56,17 +77,23 @@ public class SourceBundle
         return biPredicate.and((t, u) -> predicate.test(t));
     }
 
-    private SourceBundle importSources(Path start, BiPredicate<Path, BasicFileAttributes> biPredicate)
+    private SourceBundle importSources(Path path, BiPredicate<Path, BasicFileAttributes> biPredicate)
     {
+        Path start = path.toAbsolutePath();
+        sourceBasedTypeSolver.add(new JavaParserTypeSolver(start, parserConfiguration));
+
         try
         {
             try (Stream<Path> pathStream = Files.find(start, Integer.MAX_VALUE, biPredicate))
             {
-                pathStream.forEach(path -> {
-                    var compilationUnit = parse(path);
-                    Path pathRelativeToStart = start.relativize(path);
-                    compilationUnits.put(pathRelativeToStart, compilationUnit);
-                });
+                pathStream.map(this::parse)
+                    .forEach(compilationUnit -> {
+                        Path absolutePath = compilationUnit.getStorage()
+                            .orElseThrow(CodeInconsistencyException::new)
+                            .getPath();
+                        Path relativePath = start.relativize(absolutePath);
+                        compilationUnits.put(relativePath, compilationUnit);
+                    });
             }
         }
         catch (IOException e)
@@ -89,7 +116,7 @@ public class SourceBundle
     {
         try
         {
-            return StaticJavaParser.parse(path);
+            return parseFile(path);
         }
         catch (IOException e)
         {
@@ -97,6 +124,15 @@ public class SourceBundle
         }
     }
 
+    private CompilationUnit parseFile(Path path) throws IOException
+    {
+        return javaParserAdapter.parse(path);
+    }
+
+    /**
+     * @throws AssertionError if the rule discovered violations
+     * @throws UnprocessableSourceCodeException if the rule encountered unexpected or unsupported source code constructs
+     */
     public SourceBundle verify(SourceRule rule)
     {
         var violations = runScan(rule);
@@ -113,16 +149,28 @@ public class SourceBundle
     @VisibleForTesting
     List<String> runScan(SourceRule rule)
     {
-        for (Map.Entry<Path, CompilationUnit> entry : compilationUnits.entries())
-        {
-            var compilationUnit = entry.getValue();
-            var path = entry.getKey();
-            Context context = new Context(compilationUnit, path, this::lookupCompilationUnit);
+        rule.init(ruleContext);
 
-            rule.scan(compilationUnit, context);
-        }
+        compilationUnits.entries()
+            .forEach(entry -> scanFile(rule, entry.getValue(), entry.getKey()));
 
         return rule.getViolations();
+    }
+
+    private void scanFile(SourceRule rule, CompilationUnit compilationUnit, Path relativePath)
+    {
+        // Tell the context about the new compilation unit so that its helper methods work.
+        ruleContext.activate(compilationUnit, relativePath);
+
+        // Initiate the scan itself
+        try
+        {
+            rule.scan(compilationUnit);
+        }
+        catch (RuntimeException e)
+        {
+            throw new UnprocessableSourceCodeException("Rule failed to process " + ruleContext.getFilePath(), e);
+        }
     }
 
     private Stream<CompilationUnit> lookupCompilationUnit(Path path)

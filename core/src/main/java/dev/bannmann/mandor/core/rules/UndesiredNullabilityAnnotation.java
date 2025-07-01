@@ -2,17 +2,20 @@ package dev.bannmann.mandor.core.rules;
 
 import java.util.Set;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
-import dev.bannmann.mandor.core.AbstractSourceVisitor;
-import dev.bannmann.mandor.core.Context;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
+import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
+import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
-public class UndesiredNullabilityAnnotation extends SourceRule
+public final class UndesiredNullabilityAnnotation extends SourceRule
 {
-    private static class Visitor extends AbstractSourceVisitor
+    private class Visitor extends VoidVisitorAdapter<Void>
     {
         private static final Set<String> ANNOTATION_NAMES = Set.of("Nullable", "NotNull", "NonNull", "Nonnull");
 
@@ -21,10 +24,10 @@ public class UndesiredNullabilityAnnotation extends SourceRule
             "lombok.NonNull");
 
         @Override
-        public void visit(MarkerAnnotationExpr markerAnnotation, Context context)
+        public void visit(MarkerAnnotationExpr markerAnnotation, Void arg)
         {
             process(markerAnnotation);
-            super.visit(markerAnnotation, context);
+            super.visit(markerAnnotation, arg);
         }
 
         private void process(AnnotationExpr annotation)
@@ -46,20 +49,30 @@ public class UndesiredNullabilityAnnotation extends SourceRule
             }
 
             addViolation("%s uses undesired annotation %s in %s",
-                getContext().getEnclosingTypeName(annotation),
+                Nodes.getEnclosingTypeName(annotation),
                 qualifiedName,
-                getContext().getFileLocation(annotation));
+                getContext().getCodeLocation(annotation));
         }
 
         private boolean isRelatedToNullness(AnnotationExpr annotation)
         {
             return ANNOTATION_NAMES.contains(annotation.getNameAsString());
         }
-
         private String getQualifiedName(AnnotationExpr annotation)
         {
-            return getContext().resolve(annotation)
-                .getQualifiedName();
+            try
+            {
+                return annotation.resolve()
+                    .getQualifiedName();
+            }
+            catch (UnsolvedSymbolException e)
+            {
+                throw new UnprocessableSourceCodeException(
+                    "Cannot resolve qualified name for annotation %s used by %s in %s".formatted(annotation.getNameAsString(),
+                        Nodes.getEnclosingTypeName(annotation),
+                        getContext().getCodeLocation(annotation)),
+                    e);
+            }
         }
 
         private boolean isOutsideNullMarkedCode(AnnotationExpr annotation)
@@ -73,26 +86,26 @@ public class UndesiredNullabilityAnnotation extends SourceRule
         }
 
         @Override
-        public void visit(SingleMemberAnnotationExpr singleMemberAnnotation, Context context)
+        public void visit(SingleMemberAnnotationExpr singleMemberAnnotation, Void arg)
         {
             process(singleMemberAnnotation);
-            super.visit(singleMemberAnnotation, context);
+            super.visit(singleMemberAnnotation, arg);
         }
 
         @Override
-        public void visit(NormalAnnotationExpr normalAnnotation, Context context)
+        public void visit(NormalAnnotationExpr normalAnnotation, Void arg)
         {
             process(normalAnnotation);
-            super.visit(normalAnnotation, context);
+            super.visit(normalAnnotation, arg);
         }
     }
 
     private final Visitor visitor = new Visitor();
 
     @Override
-    protected AbstractSourceVisitor getVisitor()
+    protected void scan(CompilationUnit compilationUnit)
     {
-        return visitor;
+        compilationUnit.accept(visitor, null);
     }
 
     @Override

@@ -11,8 +11,8 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
-import dev.bannmann.mandor.core.Context;
-import dev.bannmann.mandor.core.util.Nodes;
+import dev.bannmann.mandor.core.Nodes;
+import dev.bannmann.mandor.core.RuleContext;
 
 @UtilityClass
 class CodeNullness
@@ -34,7 +34,7 @@ class CodeNullness
         return node.getAnnotationByClass(NullMarked.class);
     }
 
-    public static boolean isInNullMarkedPackage(Context context)
+    public static boolean isInNullMarkedPackage(RuleContext context)
     {
         return context.getPackageInfoFiles()
             .flatMap(packageDeclaration -> getNullMarkedAnnotation(packageDeclaration).stream())
