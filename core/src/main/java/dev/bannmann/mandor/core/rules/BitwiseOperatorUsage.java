@@ -1,5 +1,7 @@
 package dev.bannmann.mandor.core.rules;
 
+import org.kohsuke.MetaInfServices;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
@@ -15,6 +17,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParse
 import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
+@MetaInfServices
 public class BitwiseOperatorUsage extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
@@ -133,5 +136,11 @@ public class BitwiseOperatorUsage extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

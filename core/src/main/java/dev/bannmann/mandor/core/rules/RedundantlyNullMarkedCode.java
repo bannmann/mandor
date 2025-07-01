@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
+import org.kohsuke.MetaInfServices;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -20,6 +21,7 @@ import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
+@MetaInfServices
 public class RedundantlyNullMarkedCode extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
@@ -180,5 +182,11 @@ public class RedundantlyNullMarkedCode extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

@@ -3,6 +3,7 @@ package dev.bannmann.mandor.core.rules;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+import org.kohsuke.MetaInfServices;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -19,6 +20,7 @@ import com.github.mizool.core.exception.CodeInconsistencyException;
 import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
+@MetaInfServices
 public final class MalformedExhaustiveSwitch extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
@@ -122,5 +124,11 @@ public final class MalformedExhaustiveSwitch extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

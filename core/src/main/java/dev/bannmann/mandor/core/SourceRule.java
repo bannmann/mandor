@@ -11,6 +11,13 @@ import com.google.errorprone.annotations.FormatMethod;
 
 public abstract class SourceRule
 {
+    public enum Status
+    {
+        RECOMMENDED,
+        OPTIONAL,
+        EXPERIMENTAL
+    }
+
     private final List<String> violations = new ArrayList<>();
 
     private @Nullable RuleContext context;
@@ -43,4 +50,12 @@ public abstract class SourceRule
     }
 
     public abstract String getDescription();
+
+    /**
+     * The status of this rule when {@linkplain SourceRuleProvider auto discovery} is used.
+     */
+    public Status getStatus()
+    {
+        return Status.OPTIONAL;
+    }
 }

@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.kohsuke.MetaInfServices;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
@@ -21,6 +23,7 @@ import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
+@MetaInfServices
 public final class MissingSuppressionRationale extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
@@ -185,5 +188,11 @@ public final class MissingSuppressionRationale extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

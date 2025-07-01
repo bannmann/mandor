@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.kohsuke.MetaInfServices;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -14,6 +15,7 @@ import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclarati
 import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
+@MetaInfServices
 public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
 {
     private static final Set<Class<? extends Annotation>> NULLABILITY_ANNOTATIONS = Set.of(NonNull.class,
@@ -84,5 +86,11 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }

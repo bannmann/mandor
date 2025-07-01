@@ -2,6 +2,8 @@ package dev.bannmann.mandor.core.rules;
 
 import java.util.Set;
 
+import org.kohsuke.MetaInfServices;
+
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -13,6 +15,7 @@ import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 import dev.bannmann.mandor.core.UnprocessableSourceCodeException;
 
+@MetaInfServices
 public final class UndesiredNullabilityAnnotation extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
@@ -118,5 +121,11 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
     public String toString()
     {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        return Status.RECOMMENDED;
     }
 }
