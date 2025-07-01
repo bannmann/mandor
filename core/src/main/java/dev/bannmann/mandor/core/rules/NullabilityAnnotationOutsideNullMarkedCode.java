@@ -8,6 +8,9 @@ import org.jspecify.annotations.Nullable;
 import org.kohsuke.MetaInfServices;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -65,6 +68,24 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
             return NULLABILITY_ANNOTATIONS.stream()
                 .map(Class::getName)
                 .noneMatch(s -> s.equals(resolvedAnnotationDeclaration.getQualifiedName()));
+        }
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(ConstructorDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(MethodDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
         }
     }
 

@@ -7,6 +7,8 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.google.errorprone.annotations.FormatMethod;
 
 public abstract class SourceRule
@@ -19,6 +21,7 @@ public abstract class SourceRule
     }
 
     private final List<String> violations = new ArrayList<>();
+    private final MemoStack<Suppression> currentSuppressions = new MemoStack<>();
 
     private @Nullable RuleContext context;
 
@@ -28,6 +31,28 @@ public abstract class SourceRule
     }
 
     protected abstract void scan(CompilationUnit compilationUnit);
+
+    protected final void trackSuppressibleScope(NodeWithAnnotations<?> nodeWithAnnotations, Runnable action)
+    {
+        Nodes.tryGetSuppressionAnnotation(nodeWithAnnotations, getClass().getSimpleName())
+            .ifPresentOrElse(annotationExpr -> runTracked(annotationExpr, action), action);
+    }
+
+    private void runTracked(AnnotationExpr annotationExpr, Runnable action)
+    {
+        var suppression = new Suppression(annotationExpr);
+        try (MemoStack.MemoHandle ignored = currentSuppressions.create(suppression))
+        {
+            action.run();
+
+            if (!suppression.wasHit())
+            {
+                violations.add("%s needlessly suppresses %s in %s".formatted(Nodes.getEnclosingTypeName(annotationExpr),
+                    getClass().getSimpleName(),
+                    getContext().getCodeLocation(annotationExpr)));
+            }
+        }
+    }
 
     protected final RuleContext getContext()
     {
@@ -41,7 +66,8 @@ public abstract class SourceRule
     @FormatMethod
     protected final void addViolation(String message, Object... args)
     {
-        violations.add(message.formatted(args));
+        currentSuppressions.accessLastMemoContents()
+            .ifPresentOrElse(Suppression::trackHit, () -> violations.add(message.formatted(args)));
     }
 
     public final List<String> getViolations()

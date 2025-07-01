@@ -19,13 +19,13 @@ class CodeNullness
 {
     public static boolean isInNullMarkedClass(HasParentNode<Node> node)
     {
-        return Nodes.findAncestor(node, CodeNullness::hasNullMarkedAnnotation, TypeDeclaration.class)
+        return Nodes.findAncestor(node, TypeDeclaration.class, CodeNullness::hasNullMarkedAnnotation)
             .isPresent();
     }
 
     private static boolean hasNullMarkedAnnotation(TypeDeclaration<?> o)
     {
-        return CodeNullness.getNullMarkedAnnotation(o)
+        return getNullMarkedAnnotation(o)
             .isPresent();
     }
 

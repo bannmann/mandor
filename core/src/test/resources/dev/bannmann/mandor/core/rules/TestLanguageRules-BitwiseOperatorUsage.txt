@@ -4,3 +4,5 @@ com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:16
 com.example.language.BitwiseFlags uses bitwise operator in (BitwiseFlags.java:36)
 com.example.language.CrypticMath uses bitwise operator in (CrypticMath.java:10)
 com.example.language.CrypticMath uses bitwise operator in (CrypticMath.java:15)
+com.example.language.InetAddressExtras needlessly suppresses BitwiseOperatorUsage in (InetAddressExtras.java:14)
+com.example.language.ReadableMath needlessly suppresses BitwiseOperatorUsage in (ReadableMath.java:6)

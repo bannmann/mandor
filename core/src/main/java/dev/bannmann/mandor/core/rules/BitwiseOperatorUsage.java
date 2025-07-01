@@ -3,6 +3,9 @@ package dev.bannmann.mandor.core.rules;
 import org.kohsuke.MetaInfServices;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -116,6 +119,24 @@ public class BitwiseOperatorUsage extends SourceRule
             return classOrInterfaceType.getNameAsString()
                 .equals("Boolean");
         }
+
+        @Override
+        public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(ConstructorDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(MethodDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
     }
 
     private final Visitor visitor = new Visitor();
@@ -129,7 +150,7 @@ public class BitwiseOperatorUsage extends SourceRule
     @Override
     public String getDescription()
     {
-        return "Bitwise operators should only be used in very rare, exceptional circumstances";
+        return "Bitwise operators should be avoided";
     }
 
     @Override

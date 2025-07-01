@@ -3,6 +3,7 @@ package com.example.language;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
+@SuppressWarnings("BitwiseOperatorUsage") // Violation: needless suppression
 public class ReadableMath
 {
     public int divideByFour(int input)

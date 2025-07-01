@@ -1,3 +1,4 @@
 com.example.suppression.BadSuppression suppresses warning 'X:Beta' without giving rationale in (BadSuppression.java:9)
+com.example.suppression.BadSuppression suppresses warning 'X:Theta' without giving rationale in (BadSuppression.java:34)
 com.example.suppression.BadSuppression suppresses warnings 'X:Alpha', 'X:Beta' without giving rationale in (BadSuppression.java:17)
 com.example.suppression.BadSuppression suppresses warnings 'X:Alpha', 'X:Beta' without giving rationale in (BadSuppression.java:21)
