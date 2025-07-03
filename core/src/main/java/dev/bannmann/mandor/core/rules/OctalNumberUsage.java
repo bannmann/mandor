@@ -7,24 +7,35 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.stmt.AssertStmt;
+import com.github.javaparser.ast.expr.IntegerLiteralExpr;
+import com.github.javaparser.ast.expr.LiteralStringValueExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import dev.bannmann.mandor.core.Nodes;
 import dev.bannmann.mandor.core.SourceRule;
 
 @MetaInfServices
-public class AssertStatementUsage extends SourceRule
+public class OctalNumberUsage extends SourceRule
 {
     private class Visitor extends VoidVisitorAdapter<Void>
     {
+        private final OctalDetector octalDetector = new OctalDetector();
+
         @Override
-        public void visit(AssertStmt node, Void arg)
+        public void visit(IntegerLiteralExpr node, Void arg)
         {
             super.visit(node, arg);
 
-            addViolation("%s contains an assert statement in %s",
-                Nodes.getEnclosingTypeName(node),
-                getContext().getCodeLocation(node));
+            process(node);
+        }
+
+        private void process(LiteralStringValueExpr node)
+        {
+            if (octalDetector.isOctal(node.getValue()))
+            {
+                addViolation("%s contains an octal number literal in %s",
+                    Nodes.getEnclosingTypeName(node),
+                    getContext().getCodeLocation(node));
+            }
         }
 
         @Override
@@ -63,7 +74,7 @@ public class AssertStatementUsage extends SourceRule
     @Override
     public String getDescription()
     {
-        return "The Java 'assert' statement should not be used";
+        return "Number literals should not use octal notation";
     }
 
     @Override
