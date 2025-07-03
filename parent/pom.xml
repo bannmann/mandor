@@ -15,14 +15,14 @@
 
     <properties>
         <base.toolchains.jdk>17</base.toolchains.jdk>
-        <error_prone.version>2.27.1</error_prone.version>
+        <error_prone.version>2.39.0</error_prone.version>
         <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
         <labs.version>0.39</labs.version>
         <lombok.core.version>1.18.38</lombok.core.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <mockito-core.version>5.18.0</mockito-core.version>
-        <nullaway.version>0.11.0</nullaway.version>
+        <nullaway.version>0.12.7</nullaway.version>
         <slf4j.version>2.0.17</slf4j.version>
         <testng.version>7.11.0</testng.version>
     </properties>
@@ -147,9 +147,63 @@
                     <value>true</value>
                 </property>
             </activation>
+
             <build>
                 <pluginManagement>
                     <plugins>
+                        <plugin>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>errorprone-and-nullaway</id>
+                                    <goals>
+                                        <goal>compile</goal>
+                                    </goals>
+                                    <phase>test</phase>
+                                    <configuration>
+                                        <failOnWarning>true</failOnWarning>
+                                        <compilerArgs>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                                            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                                            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+                                            <arg>-XDcompilePolicy=simple</arg>
+                                            <arg>--should-stop=ifError=FLOW</arg>
+                                            <!--
+                                                Disabled bug patterns:
+                                                - MissingSummary because it is annoying
+                                                - VoidUsed because it complains about each class that implements JavaParser `VoidVisitor`
+                                                - StringConcatToTextBlock due to https://github.com/google/error-prone/issues/4918
+                                            -->
+                                            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:OnlyNullMarked=true -XepOpt:NullAway:JSpecifyMode -Xep:MissingSummary:OFF -Xep:VoidUsed:OFF -Xep:StringConcatToTextBlock:OFF</arg>
+                                        </compilerArgs>
+                                        <annotationProcessorPaths>
+                                            <path>
+                                                <groupId>org.projectlombok</groupId>
+                                                <artifactId>lombok</artifactId>
+                                                <version>${lombok.core.version}</version>
+                                            </path>
+                                            <path>
+                                                <groupId>com.google.errorprone</groupId>
+                                                <artifactId>error_prone_core</artifactId>
+                                                <version>${error_prone.version}</version>
+                                            </path>
+                                            <path>
+                                                <groupId>com.uber.nullaway</groupId>
+                                                <artifactId>nullaway</artifactId>
+                                                <version>${nullaway.version}</version>
+                                            </path>
+                                        </annotationProcessorPaths>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
                         <plugin>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok-maven-plugin</artifactId>
@@ -173,53 +227,8 @@
                         </plugin>
                     </plugins>
                 </pluginManagement>
+
                 <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>errorprone-and-nullaway</id>
-                                <goals>
-                                    <goal>compile</goal>
-                                </goals>
-                                <phase>test</phase>
-                                <configuration>
-                                    <failOnWarning>true</failOnWarning>
-                                    <compilerArgs>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
-                                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
-                                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-                                        <arg>-XDcompilePolicy=simple</arg>
-                                        <arg>-Xplugin:ErrorProne -Xep:MissingSummary:OFF -XepOpt:NullAway:JSpecifyMode -XepOpt:NullAway:AnnotatedPackages=dev.bannmann.mandor.core</arg>
-                                    </compilerArgs>
-                                    <annotationProcessorPaths>
-                                        <path>
-                                            <groupId>org.projectlombok</groupId>
-                                            <artifactId>lombok</artifactId>
-                                            <version>${lombok.core.version}</version>
-                                        </path>
-                                        <path>
-                                            <groupId>com.google.errorprone</groupId>
-                                            <artifactId>error_prone_core</artifactId>
-                                            <version>${error_prone.version}</version>
-                                        </path>
-                                        <path>
-                                            <groupId>com.uber.nullaway</groupId>
-                                            <artifactId>nullaway</artifactId>
-                                            <version>${nullaway.version}</version>
-                                        </path>
-                                    </annotationProcessorPaths>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
                     <plugin>
                         <groupId>org.projectlombok</groupId>
                         <artifactId>lombok-maven-plugin</artifactId>
