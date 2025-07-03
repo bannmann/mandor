@@ -14,13 +14,11 @@
     <name>${project.groupId}:${project.artifactId}</name>
 
     <properties>
-        <base.toolchains.jdk>17</base.toolchains.jdk>
+        <base.versionsPlugin.enabled>true</base.versionsPlugin.enabled>
         <error_prone.version>2.39.0</error_prone.version>
         <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
         <labs.version>0.39</labs.version>
         <lombok.core.version>1.18.38</lombok.core.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <mockito-core.version>5.18.0</mockito-core.version>
         <nullaway.version>0.12.7</nullaway.version>
         <slf4j.version>2.0.17</slf4j.version>
@@ -107,22 +105,6 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>versions-maven-plugin</artifactId>
                     <configuration>
-                        <processDependencies>true</processDependencies>
-                        <processDependencyManagement>true</processDependencyManagement>
-                        <processPluginDependencies>true</processPluginDependencies>
-                        <processPluginDependenciesInPluginManagement>true</processPluginDependenciesInPluginManagement>
-                        <ruleSet>
-                            <ignoreVersions>
-                                <ignoreVersion>
-                                    <type>regex</type>
-                                    <version>(.+-SNAPSHOT|.+-M\d)</version>
-                                </ignoreVersion>
-                                <ignoreVersion>
-                                    <type>regex</type>
-                                    <version>.+-(alpha|beta).+</version>
-                                </ignoreVersion>
-                            </ignoreVersions>
-                        </ruleSet>
                         <dependencyExcludes>com.github.mizool*:*:0.52</dependencyExcludes>
                         <dependencyManagementExcludes>com.github.mizool*:*:0.52</dependencyManagementExcludes>
                     </configuration>

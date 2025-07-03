@@ -5,7 +5,7 @@
     <parent>
         <groupId>dev.bannmann</groupId>
         <artifactId>base</artifactId>
-        <version>1.13</version>
+        <version>1.14</version>
     </parent>
 
     <groupId>dev.bannmann.mandor</groupId>
@@ -30,6 +30,8 @@
 
     <properties>
         <base.central.deploymentName>mandor ${project.version}</base.central.deploymentName>
+        <base.java>17</base.java>
+        <base.versionsPlugin.enabled>false</base.versionsPlugin.enabled>
     </properties>
 
     <dependencyManagement>
@@ -46,22 +48,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>versions-maven-plugin</artifactId>
-                    <version>2.18.0</version>
-                    <configuration>
-                        <processDependencies>false</processDependencies>
-                        <processDependencyManagement>false</processDependencyManagement>
-                        <processPluginDependencies>false</processPluginDependencies>
-                        <processPluginDependenciesInPluginManagement>false</processPluginDependenciesInPluginManagement>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
 </project>
