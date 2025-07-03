@@ -1,0 +1,21 @@
+name: "Purge GitHub cache for badges in README"
+
+on: workflow_dispatch
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Purge GitHub cache
+        run: |
+          curl --silent "https://github.com/$GITHUB_REPOSITORY" --output /dev/stdout \
+            | grep -o 'https://camo.githubusercontent.com[^>]*data-canonical-src="[^"]*' \
+            | sed 's/".*"/@/' \
+            | while IFS=@ read -r cacheUrl originalUrl; \
+            do \
+              printf 'Purging cache for %s\n\t%s\n' "$originalUrl" "$cacheUrl"; \
+              curl --silent --request 'PURGE' --output '/dev/stdout' "$cacheUrl" | sed 's/^/\t/g'; \
+              echo; \
+              echo; \
+            done
