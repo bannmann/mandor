@@ -5,13 +5,12 @@ import java.util.Deque;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import com.google.errorprone.annotations.MustBeClosed;
 import dev.bannmann.labs.annotations.SuppressWarningsRationale;
+import net.jcip.annotations.NotThreadSafe;
 
 @NotThreadSafe
 class MemoStack<T>

@@ -17,35 +17,55 @@
         <base.toolchains.jdk>17</base.toolchains.jdk>
         <error_prone.version>2.27.1</error_prone.version>
         <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
-        <labs.version>0.0.24</labs.version>
+        <labs.version>0.39</labs.version>
+        <lombok.core.version>1.18.38</lombok.core.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <mockito-core.version>5.18.0</mockito-core.version>
         <nullaway.version>0.11.0</nullaway.version>
-        <testng.version>7.9.0</testng.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <testng.version>7.11.0</testng.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <?SORTPOM IGNORE?>
+            <dependency>
+                <!--
+                    It seems we need to import `slf4j-bom` here despite `base` doing the same. Otherwise, various 2.0.9
+                    artifacts appear in the dependency tree (and in `mvn versions:display-dependency-updates`). This is
+                    probably somehow caused by mizool-core 0.52 having that dependency without using `slf4j-bom`.
+                    Note that if this import appears at the end of the list, it doesn't work.
+                -->
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <?SORTPOM RESUME?>
             <dependency>
                 <groupId>com.github.javaparser</groupId>
                 <artifactId>javaparser-symbol-solver-core</artifactId>
-                <version>3.26.2</version>
+                <version>3.27.0</version>
             </dependency>
             <dependency>
                 <groupId>dev.bannmann.labs</groupId>
-                <artifactId>annotations</artifactId>
+                <artifactId>labs-bom</artifactId>
                 <version>${labs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.bannmann.labs</groupId>
-                <artifactId>core</artifactId>
-                <version>${labs.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>net.grey-panther</groupId>
                 <artifactId>natural-comparator</artifactId>
                 <version>1.1</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.jcip</groupId>
+                <artifactId>jcip-annotations</artifactId>
+                <version>1.0</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -82,6 +102,30 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <configuration>
+                        <processDependencies>true</processDependencies>
+                        <processDependencyManagement>true</processDependencyManagement>
+                        <processPluginDependencies>true</processPluginDependencies>
+                        <processPluginDependenciesInPluginManagement>true</processPluginDependenciesInPluginManagement>
+                        <ruleSet>
+                            <ignoreVersions>
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>(.+-SNAPSHOT|.+-M\d)</version>
+                                </ignoreVersion>
+                                <ignoreVersion>
+                                    <type>regex</type>
+                                    <version>.+-(alpha|beta).+</version>
+                                </ignoreVersion>
+                            </ignoreVersions>
+                        </ruleSet>
+                        <dependencyExcludes>com.github.mizool*:*:0.52</dependencyExcludes>
+                        <dependencyManagementExcludes>com.github.mizool*:*:0.52</dependencyManagementExcludes>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
