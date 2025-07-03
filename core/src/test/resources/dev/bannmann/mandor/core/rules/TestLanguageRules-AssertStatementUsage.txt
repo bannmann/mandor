@@ -1,0 +1,3 @@
+com.example.language.CodeWithAssertions contains an assert statement in (CodeWithAssertions.java:9)
+com.example.language.CodeWithAssertions contains an assert statement in (CodeWithAssertions.java:11)
+com.example.language.CodeWithAssertions needlessly suppresses AssertStatementUsage in (CodeWithAssertions.java:22)

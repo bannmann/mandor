@@ -6,6 +6,6 @@ public class TestLanguageRules extends AbstractRuleTest
 {
     public TestLanguageRules()
     {
-        super("language", new BitwiseOperatorUsage());
+        super("language", new AssertStatementUsage(), new BitwiseOperatorUsage());
     }
 }

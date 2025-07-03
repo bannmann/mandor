@@ -25,9 +25,10 @@ public abstract class AbstractRuleTest
 {
     public static final Path ROOT_PATH = Paths.get("src/test/java")
         .toAbsolutePath();
+
     private final List<SourceRule> rules;
     private final SourceBundle sourceBundle;
-    private Path ruleResultsDirectory;
+    private final Path ruleResultsDirectory;
 
     protected AbstractRuleTest(String packageNameSegment, SourceRule... rules)
     {
