@@ -4,8 +4,9 @@
 
     <parent>
         <groupId>dev.bannmann.mandor</groupId>
-        <artifactId>mandor</artifactId>
+        <artifactId>mandor-parent</artifactId>
         <version>0.7-SNAPSHOT</version>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>core</artifactId>
