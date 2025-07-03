@@ -1,0 +1,3 @@
+com.example.language.ClassyClass refers to itself using a class literal in (ClassyClass.java:26)
+com.example.language.ClassyClass refers to itself using a class literal in (ClassyClass.java:31)
+com.example.language.ClassyClass.GreekLetter refers to itself using a class literal in (ClassyClass.java:50)

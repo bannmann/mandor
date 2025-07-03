@@ -6,6 +6,10 @@ public class TestLanguageRules extends AbstractRuleTest
 {
     public TestLanguageRules()
     {
-        super("language", new AssertStatementUsage(), new BitwiseOperatorUsage(), new OctalNumberUsage());
+        super("language",
+            new AssertStatementUsage(),
+            new BitwiseOperatorUsage(),
+            new HardcodedClassReference(),
+            new OctalNumberUsage());
     }
 }
