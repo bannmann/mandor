@@ -6,12 +6,12 @@
 
 ## annotations
 
-[![](https://maven-badges.herokuapp.com/maven-central/dev.bannmann.mandor/annotations/badge.svg "Javadoc")](https://maven-badges.herokuapp.com/maven-central/dev.bannmann.mandor/annotations)&ensp;[![](https://javadoc.io/badge2/dev.bannmann.mandor/annotations/javadoc.svg "Javadoc")](https://javadoc.io/doc/dev.bannmann.mandor/annotations)
+[![](https://img.shields.io/maven-central/v/dev.bannmann.mandor/annotations?color=brightgreen "Maven Central")](https://central.sonatype.com/artifact/dev.bannmann.mandor/annotations)&ensp;[![](https://javadoc.io/badge2/dev.bannmann.mandor/annotations/javadoc.svg "Javadoc")](https://javadoc.io/doc/dev.bannmann.mandor/annotations)
 
 
 ## core
 
-[![](https://maven-badges.herokuapp.com/maven-central/dev.bannmann.mandor/core/badge.svg "Javadoc")](https://maven-badges.herokuapp.com/maven-central/dev.bannmann.mandor/core)&ensp;[![](https://javadoc.io/badge2/dev.bannmann.mandor/core/javadoc.svg "Javadoc")](https://javadoc.io/doc/dev.bannmann.mandor/core)
+[![](https://img.shields.io/maven-central/v/dev.bannmann.mandor/core?color=brightgreen "Maven Central")](https://central.sonatype.com/artifact/dev.bannmann.mandor/core)&ensp;[![](https://javadoc.io/badge2/dev.bannmann.mandor/core/javadoc.svg "Javadoc")](https://javadoc.io/doc/dev.bannmann.mandor/core)
 
 [![](https://img.shields.io/badge/nullness_annotations-JSpecify_1.0-darkgreen "JSpecify 1.0 nullness annotations")](https://jspecify.dev/)
 
