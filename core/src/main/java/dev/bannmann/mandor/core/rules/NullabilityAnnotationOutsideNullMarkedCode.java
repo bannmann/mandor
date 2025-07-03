@@ -10,6 +10,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -52,7 +53,7 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
             }
 
             addViolation("%s is not NullMarked but uses a jSpecify nullability annotation in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 getContext().getCodeLocation(annotation));
         }
 
@@ -72,6 +73,12 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

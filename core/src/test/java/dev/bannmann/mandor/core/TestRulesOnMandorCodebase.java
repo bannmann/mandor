@@ -1,4 +1,4 @@
-package dev.bannmann.mandor;
+package dev.bannmann.mandor.core;
 
 import static dev.bannmann.mandor.core.SourceRule.Status.EXPERIMENTAL;
 import static dev.bannmann.mandor.core.SourceRule.Status.OPTIONAL;
@@ -8,10 +8,6 @@ import java.nio.file.Path;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import dev.bannmann.mandor.core.SourceBundle;
-import dev.bannmann.mandor.core.SourceRule;
-import dev.bannmann.mandor.core.SourceRuleProvider;
 
 public class TestRulesOnMandorCodebase
 {

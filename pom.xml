@@ -5,12 +5,12 @@
     <parent>
         <groupId>dev.bannmann</groupId>
         <artifactId>base</artifactId>
-        <version>1.13</version>
+        <version>1.14</version>
     </parent>
 
     <groupId>dev.bannmann.mandor</groupId>
-    <artifactId>mandor</artifactId>
-    <version>0.0.6</version>
+    <artifactId>mandor-bom</artifactId>
+    <version>0.7</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -20,6 +20,7 @@
     <modules>
         <module>annotations</module>
         <module>core</module>
+        <module>parent</module>
     </modules>
 
     <scm>
@@ -29,179 +30,22 @@
 
     <properties>
         <base.central.deploymentName>mandor ${project.version}</base.central.deploymentName>
-        <base.toolchains.jdk>17</base.toolchains.jdk>
-        <error_prone.version>2.27.1</error_prone.version>
-        <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
-        <labs.version>0.0.24</labs.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <nullaway.version>0.11.0</nullaway.version>
-        <testng.version>7.9.0</testng.version>
+        <base.java>17</base.java>
+        <base.versionsPlugin.enabled>false</base.versionsPlugin.enabled>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.github.javaparser</groupId>
-                <artifactId>javaparser-symbol-solver-core</artifactId>
-                <version>3.26.2</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.bannmann.labs</groupId>
-                <artifactId>annotations</artifactId>
-                <version>${labs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.bannmann.labs</groupId>
-                <artifactId>core</artifactId>
-                <version>${labs.version}</version>
-            </dependency>
             <dependency>
                 <groupId>dev.bannmann.mandor</groupId>
                 <artifactId>annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.grey-panther</groupId>
-                <artifactId>natural-comparator</artifactId>
-                <version>1.1</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
-                <version>3.27.3</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jspecify</groupId>
-                <artifactId>jspecify</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.kohsuke.metainf-services</groupId>
-                <artifactId>metainf-services</artifactId>
-                <version>1.11</version>
-                <scope>provided</scope>
+                <groupId>dev.bannmann.mandor</groupId>
+                <artifactId>core</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <configuration>
-                        <sourcepath>${javadoc.sources.directory}</sourcepath>
-                        <doclint>none</doclint>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>3.0.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <id>release-profile</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok-maven-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>prepare-javadoc-main</id>
-                                    <goals>
-                                        <goal>delombok</goal>
-                                    </goals>
-                                    <phase>prepare-package</phase>
-                                    <configuration>
-                                        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
-                                        <outputDirectory>${javadoc.sources.directory}</outputDirectory>
-                                        <addOutputDirectory>false</addOutputDirectory>
-                                        <formatPreferences>
-                                            <javaLangAsFQN>skip</javaLangAsFQN>
-                                        </formatPreferences>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>errorprone-and-nullaway</id>
-                                <goals>
-                                    <goal>compile</goal>
-                                </goals>
-                                <phase>test</phase>
-                                <configuration>
-                                    <failOnWarning>true</failOnWarning>
-                                    <compilerArgs>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-                                        <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
-                                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
-                                        <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-                                        <arg>-XDcompilePolicy=simple</arg>
-                                        <arg>-Xplugin:ErrorProne -Xep:MissingSummary:OFF -XepOpt:NullAway:JSpecifyMode -XepOpt:NullAway:AnnotatedPackages=dev.bannmann.mandor.core</arg>
-                                    </compilerArgs>
-                                    <annotationProcessorPaths>
-                                        <path>
-                                            <groupId>org.projectlombok</groupId>
-                                            <artifactId>lombok</artifactId>
-                                            <version>${lombok.core.version}</version>
-                                        </path>
-                                        <path>
-                                            <groupId>com.google.errorprone</groupId>
-                                            <artifactId>error_prone_core</artifactId>
-                                            <version>${error_prone.version}</version>
-                                        </path>
-                                        <path>
-                                            <groupId>com.uber.nullaway</groupId>
-                                            <artifactId>nullaway</artifactId>
-                                            <version>${nullaway.version}</version>
-                                        </path>
-                                    </annotationProcessorPaths>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.projectlombok</groupId>
-                        <artifactId>lombok-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

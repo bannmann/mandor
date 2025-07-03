@@ -7,6 +7,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -44,7 +45,7 @@ public final class OvercomplicatedSuppressionRationale extends SourceRule
                 if (shouldUseSingleMemberForm(annotation))
                 {
                     addViolation("%s needlessly uses the full `value=\"…\"` syntax for a rationale in %s",
-                        Nodes.getEnclosingTypeName(annotation),
+                        Nodes.obtainEnclosingTopLevelTypeName(annotation),
                         getContext().getCodeLocation(annotation));
                 }
             }
@@ -85,7 +86,7 @@ public final class OvercomplicatedSuppressionRationale extends SourceRule
                 .isEmpty())
             {
                 addViolation("%s needlessly specifies a suppression name for a rationale in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
             }
         }
@@ -100,6 +101,12 @@ public final class OvercomplicatedSuppressionRationale extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

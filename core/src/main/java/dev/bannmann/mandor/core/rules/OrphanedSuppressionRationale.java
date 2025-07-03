@@ -7,6 +7,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
@@ -61,7 +62,7 @@ public final class OrphanedSuppressionRationale extends SourceRule
             if (suppressionAnnotationOptional.isEmpty())
             {
                 addViolation("%s gives a rationale without suppressing a warning in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
             }
         }
@@ -75,6 +76,12 @@ public final class OrphanedSuppressionRationale extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

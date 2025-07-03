@@ -47,9 +47,8 @@ public abstract class SourceRule
 
             if (!suppression.wasHit())
             {
-                violations.add("%s needlessly suppresses %s in %s".formatted(Nodes.getEnclosingTypeName(annotationExpr),
-                    getClass().getSimpleName(),
-                    getContext().getCodeLocation(annotationExpr)));
+                violations.add("%s needlessly suppresses %s in %s".formatted(Nodes.obtainEnclosingTopLevelTypeName(
+                    annotationExpr), getClass().getSimpleName(), getContext().getCodeLocation(annotationExpr)));
             }
         }
     }

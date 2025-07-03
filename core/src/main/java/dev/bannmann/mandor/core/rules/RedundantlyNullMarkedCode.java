@@ -13,6 +13,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -73,7 +74,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
                 }
 
                 addViolation("Despite the enclosing scope already being @NullMarked, %s specifies it again in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
                 return;
             }
@@ -118,7 +119,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
             }
 
             addViolation("Despite the package already being @NullMarked, %s specifies it again in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 getContext().getCodeLocation(annotation));
         }
 
@@ -168,6 +169,12 @@ public class RedundantlyNullMarkedCode extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

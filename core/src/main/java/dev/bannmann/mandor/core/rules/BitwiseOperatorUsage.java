@@ -5,6 +5,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
@@ -54,7 +55,7 @@ public class BitwiseOperatorUsage extends SourceRule
                     expression)));
 
             addViolation("%s uses bitwise operator in %s",
-                Nodes.getEnclosingTypeName(node),
+                Nodes.obtainEnclosingTopLevelTypeName(node),
                 getContext().getCodeLocation(node));
         }
 
@@ -122,6 +123,12 @@ public class BitwiseOperatorUsage extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

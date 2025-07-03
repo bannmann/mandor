@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.bannmann.mandor</groupId>
+        <artifactId>mandor-bom</artifactId>
+        <version>0.7</version>
+    </parent>
+
+    <artifactId>mandor-parent</artifactId>
+    <packaging>pom</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+
+    <properties>
+        <base.versionsPlugin.enabled>true</base.versionsPlugin.enabled>
+        <error_prone.version>2.39.0</error_prone.version>
+        <javadoc.sources.directory>${project.build.directory}/generated-sources/javadoc-input</javadoc.sources.directory>
+        <labs.version>0.39</labs.version>
+        <lombok.core.version>1.18.38</lombok.core.version>
+        <mockito-core.version>5.18.0</mockito-core.version>
+        <nullaway.version>0.12.7</nullaway.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <testng.version>7.11.0</testng.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <?SORTPOM IGNORE?>
+            <dependency>
+                <!--
+                    It seems we need to import `slf4j-bom` here despite `base` doing the same. Otherwise, various 2.0.9
+                    artifacts appear in the dependency tree (and in `mvn versions:display-dependency-updates`). This is
+                    probably somehow caused by mizool-core 0.52 having that dependency without using `slf4j-bom`.
+                    Note that if this import appears at the end of the list, it doesn't work.
+                -->
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>${slf4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <?SORTPOM RESUME?>
+            <dependency>
+                <groupId>com.github.javaparser</groupId>
+                <artifactId>javaparser-symbol-solver-core</artifactId>
+                <version>3.27.0</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.bannmann.labs</groupId>
+                <artifactId>labs-bom</artifactId>
+                <version>${labs.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.grey-panther</groupId>
+                <artifactId>natural-comparator</artifactId>
+                <version>1.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.jcip</groupId>
+                <artifactId>jcip-annotations</artifactId>
+                <version>1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.27.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jspecify</groupId>
+                <artifactId>jspecify</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.kohsuke.metainf-services</groupId>
+                <artifactId>metainf-services</artifactId>
+                <version>1.11</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <sourcepath>${javadoc.sources.directory}</sourcepath>
+                        <doclint>none</doclint>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <configuration>
+                        <dependencyExcludes>com.github.mizool*:*:0.52</dependencyExcludes>
+                        <dependencyManagementExcludes>com.github.mizool*:*:0.52</dependencyManagementExcludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release-profile</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>errorprone-and-nullaway</id>
+                                    <goals>
+                                        <goal>compile</goal>
+                                    </goals>
+                                    <phase>test</phase>
+                                    <configuration>
+                                        <failOnWarning>true</failOnWarning>
+                                        <compilerArgs>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                                            <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                                            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                                            <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+                                            <arg>-XDcompilePolicy=simple</arg>
+                                            <arg>--should-stop=ifError=FLOW</arg>
+                                            <!--
+                                                Disabled bug patterns:
+                                                - MissingSummary because it is annoying
+                                                - VoidUsed because it complains about each class that implements JavaParser `VoidVisitor`
+                                                - StringConcatToTextBlock due to https://github.com/google/error-prone/issues/4918
+                                            -->
+                                            <arg>-Xplugin:ErrorProne -XepOpt:NullAway:OnlyNullMarked=true -XepOpt:NullAway:JSpecifyMode -Xep:MissingSummary:OFF -Xep:VoidUsed:OFF -Xep:StringConcatToTextBlock:OFF</arg>
+                                        </compilerArgs>
+                                        <annotationProcessorPaths>
+                                            <path>
+                                                <groupId>org.projectlombok</groupId>
+                                                <artifactId>lombok</artifactId>
+                                                <version>${lombok.core.version}</version>
+                                            </path>
+                                            <path>
+                                                <groupId>com.google.errorprone</groupId>
+                                                <artifactId>error_prone_core</artifactId>
+                                                <version>${error_prone.version}</version>
+                                            </path>
+                                            <path>
+                                                <groupId>com.uber.nullaway</groupId>
+                                                <artifactId>nullaway</artifactId>
+                                                <version>${nullaway.version}</version>
+                                            </path>
+                                        </annotationProcessorPaths>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>prepare-javadoc-main</id>
+                                    <goals>
+                                        <goal>delombok</goal>
+                                    </goals>
+                                    <phase>prepare-package</phase>
+                                    <configuration>
+                                        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                                        <outputDirectory>${javadoc.sources.directory}</outputDirectory>
+                                        <addOutputDirectory>false</addOutputDirectory>
+                                        <formatPreferences>
+                                            <javaLangAsFQN>skip</javaLangAsFQN>
+                                        </formatPreferences>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+
+                <plugins>
+                    <plugin>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

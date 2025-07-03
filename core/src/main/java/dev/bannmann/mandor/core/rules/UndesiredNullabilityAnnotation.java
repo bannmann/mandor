@@ -7,6 +7,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -55,7 +56,7 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
             }
 
             addViolation("%s uses undesired annotation %s in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 qualifiedName,
                 getContext().getCodeLocation(annotation));
         }
@@ -76,7 +77,7 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
             {
                 throw new UnprocessableSourceCodeException(
                     "Cannot resolve qualified name for annotation %s used by %s in %s".formatted(annotation.getNameAsString(),
-                        Nodes.getEnclosingTypeName(annotation),
+                        Nodes.obtainEnclosingTopLevelTypeName(annotation),
                         getContext().getCodeLocation(annotation)),
                     e);
             }
@@ -108,6 +109,12 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }

@@ -7,6 +7,7 @@ public class TestNullnessRules extends AbstractRuleTest
     public TestNullnessRules()
     {
         super("nullness",
+            new MissingPackageNullnessDefault(),
             new NullabilityAnnotationOutsideNullMarkedCode(),
             new RedundantlyNullMarkedCode(),
             new UndesiredNullabilityAnnotation());

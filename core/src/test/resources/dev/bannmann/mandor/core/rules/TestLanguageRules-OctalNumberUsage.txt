@@ -1,0 +1,2 @@
+com.example.language.ReadableMath contains an octal number literal in (ReadableMath.java:9)
+com.example.language.ReadableMath needlessly suppresses OctalNumberUsage in (ReadableMath.java:16)

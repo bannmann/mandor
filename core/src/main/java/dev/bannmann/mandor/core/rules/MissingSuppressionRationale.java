@@ -10,6 +10,7 @@ import org.kohsuke.MetaInfServices;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
@@ -106,7 +107,7 @@ public final class MissingSuppressionRationale extends SourceRule
                 : "warning";
 
             addViolation("%s suppresses %s %s without giving rationale in %s",
-                Nodes.getEnclosingTypeName(suppressionAnnotation),
+                Nodes.obtainEnclosingTopLevelTypeName(suppressionAnnotation),
                 what,
                 suppressedWithoutRationale.stream()
                     .sorted()
@@ -174,6 +175,12 @@ public final class MissingSuppressionRationale extends SourceRule
 
         @Override
         public void visit(ClassOrInterfaceDeclaration n, Void arg)
+        {
+            trackSuppressibleScope(n, () -> super.visit(n, arg));
+        }
+
+        @Override
+        public void visit(FieldDeclaration n, Void arg)
         {
             trackSuppressibleScope(n, () -> super.visit(n, arg));
         }
