@@ -56,7 +56,7 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
             }
 
             addViolation("%s uses undesired annotation %s in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 qualifiedName,
                 getContext().getCodeLocation(annotation));
         }
@@ -77,7 +77,7 @@ public final class UndesiredNullabilityAnnotation extends SourceRule
             {
                 throw new UnprocessableSourceCodeException(
                     "Cannot resolve qualified name for annotation %s used by %s in %s".formatted(annotation.getNameAsString(),
-                        Nodes.getEnclosingTypeName(annotation),
+                        Nodes.obtainEnclosingTopLevelTypeName(annotation),
                         getContext().getCodeLocation(annotation)),
                     e);
             }

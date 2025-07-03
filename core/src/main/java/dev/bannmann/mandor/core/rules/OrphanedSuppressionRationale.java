@@ -62,7 +62,7 @@ public final class OrphanedSuppressionRationale extends SourceRule
             if (suppressionAnnotationOptional.isEmpty())
             {
                 addViolation("%s gives a rationale without suppressing a warning in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
             }
         }

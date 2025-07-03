@@ -74,7 +74,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
                 }
 
                 addViolation("Despite the enclosing scope already being @NullMarked, %s specifies it again in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
                 return;
             }
@@ -119,7 +119,7 @@ public class RedundantlyNullMarkedCode extends SourceRule
             }
 
             addViolation("Despite the package already being @NullMarked, %s specifies it again in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 getContext().getCodeLocation(annotation));
         }
 

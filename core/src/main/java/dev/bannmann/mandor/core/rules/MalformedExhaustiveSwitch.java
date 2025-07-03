@@ -47,7 +47,7 @@ public final class MalformedExhaustiveSwitch extends SourceRule
             if (!isUsedCorrectly(annotation))
             {
                 addViolation("%s uses @ExhaustiveSwitch incorrectly in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
             }
         }

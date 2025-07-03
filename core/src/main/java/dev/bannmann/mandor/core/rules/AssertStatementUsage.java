@@ -23,7 +23,7 @@ public class AssertStatementUsage extends SourceRule
             super.visit(node, arg);
 
             addViolation("%s contains an assert statement in %s",
-                Nodes.getEnclosingTypeName(node),
+                Nodes.obtainEnclosingTopLevelTypeName(node),
                 getContext().getCodeLocation(node));
         }
 

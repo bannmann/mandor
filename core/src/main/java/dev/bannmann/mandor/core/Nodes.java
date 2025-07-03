@@ -36,7 +36,7 @@ public class Nodes
         return node.findAncestor(predicate, ancestorClass);
     }
 
-    public String getEnclosingTypeName(Node startingNode)
+    public String obtainEnclosingTopLevelTypeName(Node startingNode)
     {
         String topmostTypeName = null;
         Node node = startingNode;

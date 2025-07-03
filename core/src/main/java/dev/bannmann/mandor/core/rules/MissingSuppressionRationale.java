@@ -107,7 +107,7 @@ public final class MissingSuppressionRationale extends SourceRule
                 : "warning";
 
             addViolation("%s suppresses %s %s without giving rationale in %s",
-                Nodes.getEnclosingTypeName(suppressionAnnotation),
+                Nodes.obtainEnclosingTopLevelTypeName(suppressionAnnotation),
                 what,
                 suppressedWithoutRationale.stream()
                     .sorted()

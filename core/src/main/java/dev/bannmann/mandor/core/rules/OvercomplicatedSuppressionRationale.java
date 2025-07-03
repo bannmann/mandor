@@ -45,7 +45,7 @@ public final class OvercomplicatedSuppressionRationale extends SourceRule
                 if (shouldUseSingleMemberForm(annotation))
                 {
                     addViolation("%s needlessly uses the full `value=\"…\"` syntax for a rationale in %s",
-                        Nodes.getEnclosingTypeName(annotation),
+                        Nodes.obtainEnclosingTopLevelTypeName(annotation),
                         getContext().getCodeLocation(annotation));
                 }
             }
@@ -86,7 +86,7 @@ public final class OvercomplicatedSuppressionRationale extends SourceRule
                 .isEmpty())
             {
                 addViolation("%s needlessly specifies a suppression name for a rationale in %s",
-                    Nodes.getEnclosingTypeName(annotation),
+                    Nodes.obtainEnclosingTopLevelTypeName(annotation),
                     getContext().getCodeLocation(annotation));
             }
         }

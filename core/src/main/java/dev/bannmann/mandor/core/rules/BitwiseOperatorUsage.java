@@ -55,7 +55,7 @@ public class BitwiseOperatorUsage extends SourceRule
                     expression)));
 
             addViolation("%s uses bitwise operator in %s",
-                Nodes.getEnclosingTypeName(node),
+                Nodes.obtainEnclosingTopLevelTypeName(node),
                 getContext().getCodeLocation(node));
         }
 

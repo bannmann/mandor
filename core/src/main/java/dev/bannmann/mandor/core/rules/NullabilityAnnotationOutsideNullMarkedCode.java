@@ -53,7 +53,7 @@ public class NullabilityAnnotationOutsideNullMarkedCode extends SourceRule
             }
 
             addViolation("%s is not NullMarked but uses a jSpecify nullability annotation in %s",
-                Nodes.getEnclosingTypeName(annotation),
+                Nodes.obtainEnclosingTopLevelTypeName(annotation),
                 getContext().getCodeLocation(annotation));
         }
 

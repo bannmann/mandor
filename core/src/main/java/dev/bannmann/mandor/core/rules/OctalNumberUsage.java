@@ -33,7 +33,7 @@ public class OctalNumberUsage extends SourceRule
             if (octalDetector.isOctal(node.getValue()))
             {
                 addViolation("%s contains an octal number literal in %s",
-                    Nodes.getEnclosingTypeName(node),
+                    Nodes.obtainEnclosingTopLevelTypeName(node),
                     getContext().getCodeLocation(node));
             }
         }
