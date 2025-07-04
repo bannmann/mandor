@@ -1,0 +1,4 @@
+com.example.libraries.FancyCounter1 should use annotation com.google.errorprone.annotations.ThreadSafe instead of net.jcip.annotations.ThreadSafe in (FancyCounter1.java:7)
+com.example.libraries.FancyCounter2 should use annotation com.google.errorprone.annotations.ThreadSafe instead of net.jcip.annotations.ThreadSafe in (FancyCounter2.java:5)
+com.example.libraries.SimpleCounter1 should use annotation net.jcip.annotations.NotThreadSafe instead of javax.annotation.concurrent.NotThreadSafe in (SimpleCounter1.java:5)
+com.example.libraries.SimpleCounter2 should use annotation net.jcip.annotations.NotThreadSafe instead of javax.annotation.concurrent.NotThreadSafe in (SimpleCounter2.java:3)

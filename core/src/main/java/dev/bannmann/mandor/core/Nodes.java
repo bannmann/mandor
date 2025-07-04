@@ -16,6 +16,7 @@ import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import dev.bannmann.labs.annotations.SuppressWarningsRationale;
 import dev.bannmann.labs.core.StreamExtras;
 
@@ -123,5 +124,22 @@ public class Nodes
                 .anyMatch(value -> value.equals(name));
         }
         throw new UnprocessableSourceCodeException("Unexpected syntax in @SuppressWarnings annotation");
+    }
+
+    public static String getQualifiedName(AnnotationExpr annotation, RuleContext context)
+    {
+        try
+        {
+            return annotation.resolve()
+                .getQualifiedName();
+        }
+        catch (UnsolvedSymbolException e)
+        {
+            throw new UnprocessableSourceCodeException(
+                "Cannot resolve qualified name for annotation %s used by %s in %s".formatted(annotation.getNameAsString(),
+                    obtainEnclosingTopLevelTypeName(annotation),
+                    context.getCodeLocation(annotation)),
+                e);
+        }
     }
 }
